@@ -235,6 +235,9 @@ function get_grade($score,$grading){
     return ['grade'=>'','comment'=>''];
 }
 
+/* ---------------- hardcoded grade => point mapping ---------------- */
+$grade_points = ['D1'=>1,'D2'=>2,'C3'=>3,'C4'=>4,'C5'=>5,'C6'=>6,'P7'=>7,'P8'=>8,'F9'=>9];
+
 /* ---------------- compute totals & ranks ---------------- */
 /* helper to compute student's total (sum of subject averages across the exams that exist) */
 function compute_total_for_student($sid, $subjects, $exam_rows, $marks_map){
@@ -318,20 +321,20 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
     border-collapse:collapse; 
     margin-top:12px; 
   }
-  .subject-table th, .subject-table td, .grading-horizontal td, .grading-horizontal th {    border:1px solid #ddd; 
-  padding:6px; 
-  text-align:center; 
-  font-size:13px; }
+  .subject-table th, .subject-table td, .grading-horizontal td, .grading-horizontal th {
+    border:1px solid #ddd; 
+    padding:6px; 
+    text-align:center; 
+    font-size:13px; 
+  }
   .meta-row{ 
     display:flex; 
     justify-content:space-between; 
     margin-top:10px; 
   }
   .signature{ 
-    /* min-height:60px;  */
     border-bottom:1px dotted #333; 
     width: 50%;
-    /* padding:6px;  */
   } 
   .page-break{ 
     page-break-after:always; 
@@ -364,7 +367,7 @@ foreach($students_stream as $sid => $stu){
                     htmlspecialchars("Tel: $school_tel") . "<br>" . 
                     htmlspecialchars("Email: $school_email"); 
               ?>
-              <div class="text-uppercase"><?php echo htmlspecialchars($school_motto) ?></em></div>
+              <div class="text-uppercase"><?php echo htmlspecialchars($school_motto) ?></div>
               <div class="mt-2 fw-bold"><?php echo htmlspecialchars("END OF $term_name $sel_year REPORT") ?></div>
             </div>
             <div class="col-lg-4 text-center text-lg-end">
@@ -378,7 +381,11 @@ foreach($students_stream as $sid => $stu){
       <div class="meta-row">
         <div>
           <strong>Student Name:</strong> <span class="text-uppercase"><?php echo htmlspecialchars($student_name) ?></span><br>
-          <strong>Class:</strong> <span class="text-uppercase"><?php echo htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn,"SELECT class_name FROM classes WHERE id=$sel_class LIMIT 1"))['class_name'] ?? '') . ' ' . htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn,"SELECT stream_name FROM streams WHERE id=$sel_stream LIMIT 1"))['stream_name'] ?? '') ?></span>
+          <strong>Class:</strong> <span class="text-uppercase"><?php 
+              echo htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn,"SELECT class_name FROM classes WHERE id=$sel_class LIMIT 1"))['class_name'] ?? '') 
+                 . ' ' . 
+                 htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn,"SELECT stream_name FROM streams WHERE id=$sel_stream LIMIT 1"))['stream_name'] ?? '') 
+              ?></span>
         </div>
         <div style="text-align:left;">
           <strong>LIN:</strong> <span class="text-uppercase"><?php echo htmlspecialchars($lin ?: '-') ?></span><br>
@@ -401,7 +408,6 @@ foreach($students_stream as $sid => $stu){
               <th class="fw-bold text-uppercase">
                   <?php echo htmlspecialchars(strtoupper($ex['exam_name'])); ?>
               </th>
-
               <?php endforeach; ?>
               <th class="text-uppercase">Average</th>
               <th class="text-uppercase">Grade</th>
@@ -410,27 +416,90 @@ foreach($students_stream as $sid => $stu){
             </tr>
           </thead>
           <tbody>
-            <?php foreach($subjects as $sub):
+            <?php
+            // per-student accumulators
+            $grand_total = 0;            // sum of subject averages
+            $aggregate_total = 0;        // sum of grade points
+            $exam_avgs = [];             // per-exam average (across subjects) for this student
+
+            // initialize exam_avgs counters
+            foreach($exam_rows as $ex) { $exam_avgs[$ex['exam_id']] = ['sum'=>0,'cnt'=>0]; }
+
+            foreach($subjects as $sub):
                 $sub_id = $sub['subject_id'];
                 $sum=0; $cnt=0; $cells=[];
                 foreach($exam_rows as $ex){
-                    $val = $marks_map[$sid][$ex['exam_id']][$sub_id] ?? '';
+                    $exid = $ex['exam_id'];
+                    $val = $marks_map[$sid][$exid][$sub_id] ?? '';
                     $cells[] = ($val === '' ? '' : htmlspecialchars($val));
-                    if ($val !== '' && is_numeric($val)){ $sum += floatval($val); $cnt++; }
+                    if ($val !== '' && is_numeric($val)){
+                        $sum += floatval($val);
+                        $cnt++;
+                        // accumulate to per-exam avg
+                        $exam_avgs[$exid]['sum'] += floatval($val);
+                        $exam_avgs[$exid]['cnt'] += 1;
+                    }
                 }
                 $avg = $cnt? round($sum/$cnt,0) : '';
                 $ginfo = get_grade($avg,$grading);
-                $initials = $initials_map[$sub_id] ?? '';
+                $grade = $ginfo['grade'];
+                $grand_total += ($avg !== '' ? $avg : 0);
+                if (isset($grade_points[$grade])) $aggregate_total += $grade_points[$grade];
             ?>
               <tr>
                 <td><?php echo htmlspecialchars($sub['subject_name']) ?></td>
                 <?php foreach($cells as $c): ?><td><?php echo $c; ?></td><?php endforeach; ?>
                 <td><?php echo ($avg === ''? '': htmlspecialchars($avg)); ?></td>
-                <td><?php echo htmlspecialchars($ginfo['grade']); ?></td>
+                <td><?php echo htmlspecialchars($grade); ?></td>
                 <td><?php echo htmlspecialchars($ginfo['comment']); ?></td>
-                <td><?php echo htmlspecialchars($initials); ?></td>
+                <td><?php echo htmlspecialchars($initials_map[$sub_id] ?? ''); ?></td>
               </tr>
             <?php endforeach; ?>
+
+            <?php
+            // compute per-exam averages (only subjects with marks are counted)
+            $per_exam_avg_values = [];
+            foreach($exam_rows as $ex){
+                $exid = $ex['exam_id'];
+                $esum = $exam_avgs[$exid]['sum'];
+                $ecnt = $exam_avgs[$exid]['cnt'];
+                $per_exam_avg_values[] = ($ecnt>0) ? ($esum / $ecnt) : null;
+            }
+            // average of exam averages (ignore nulls)
+            $valid_exam_avgs = array_filter($per_exam_avg_values, function($v){ return $v !== null; });
+            $merged_exam_average = !empty($valid_exam_avgs) ? round(array_sum($valid_exam_avgs)/count($valid_exam_avgs), 0) : 0;
+
+            // grand_total currently is sum of subject averages (each subject avg is already rounded).
+            // per your request, Average column in summary row will show TOTAL (sum of those subject averages)
+            $total_of_subject_averages = $grand_total;
+
+            // determine division from aggregate_total
+            if ($aggregate_total >= 4 && $aggregate_total <= 12) $division = "1";
+            elseif ($aggregate_total >= 13 && $aggregate_total <= 23) $division = "2";
+            elseif ($aggregate_total >= 24 && $aggregate_total <= 29) $division = "3";
+            elseif ($aggregate_total >= 30 && $aggregate_total <= 34) $division = "4";
+            else $division = "-";
+            ?>
+
+            <!-- SUMMARY ROW -->
+            <tr style="font-weight:bold; background:#f8f9fa; text-align:center;">
+              <td></td>
+
+              <!-- merged exam averages cell -->
+              <td colspan="<?php echo max(1, count($exam_rows)); ?>">
+                AVERAGE: <?php echo htmlspecialchars($merged_exam_average); ?>
+              </td>
+
+              <!-- TOTAL (sum of subject averages) -->
+              <td><?php echo htmlspecialchars($total_of_subject_averages); ?></td>
+
+              <!-- Grade + Comment merged -->
+              <td colspan="2">AGGREGATES: <?php echo htmlspecialchars($aggregate_total); ?></td>
+
+              <!-- Initials column used for Division -->
+              <td>DIVISION: <?php echo htmlspecialchars($division === "-" ? "-" : $division); ?></td>
+            </tr>
+
           </tbody>
         </table>
       </div>
@@ -460,8 +529,7 @@ foreach($students_stream as $sid => $stu){
       <div style="display:flex; margin-top:55px;">
         <div style="flex:1;">
           <strong>Class Teacher's Comment</strong>
-          <div class="signature"><?php echo nl2br(htmlspecialchars($ct_map[$sid] ?? '')); ?>
-          </div><br>
+          <div class="signature"><?php echo nl2br(htmlspecialchars($ct_map[$sid] ?? '')); ?></div><br>
           <div>Signature: ____________________</div>
         </div>
         <div style="flex:1;">
@@ -470,6 +538,7 @@ foreach($students_stream as $sid => $stu){
           <div>Signature: ____________________</div>
         </div>
       </div>
+
 <hr style="height: 3px; background-color: #000000 !important; border: none;">
       <div style="text-align:center; margin-top:20px; font-weight:700;">
         <?php

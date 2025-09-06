@@ -198,36 +198,68 @@ if (isset($_GET['student_id'])) {
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label text-capitalize fw-bold">student class</label>
-                        <select class="form-select shadow-none" name="stdnt_class">
-                            <option disabled>Choose class</option>
-                            <?php
-                            $selectClass = "SELECT * FROM classes";
-                            $executeClass = mysqli_query($conn, $selectClass);
-                            while ($fetchedClass = mysqli_fetch_assoc($executeClass)) {
-                                $class_id = $fetchedClass['id'];
-                                $className = $fetchedClass['class_name'];
-                                echo "<option value='$class_id' " . (($classID == $class_id) ? 'selected' : '') . ">$className</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
+    <label class="form-label text-capitalize fw-bold">Student Class</label>
+    <select id="studentClass" class="form-select shadow-none" name="stdnt_class" required>
+        <option value="" disabled <?= !$classID ? 'selected' : ''; ?>>Choose class</option>
+        <?php
+        $selectClass = "SELECT * FROM classes";
+        $executeClass = mysqli_query($conn, $selectClass);
+        while ($fetchedClass = mysqli_fetch_assoc($executeClass)) {
+            $class_id = $fetchedClass['id'];
+            $className = $fetchedClass['class_name'];
+            echo "<option value='$class_id' " . (($classID == $class_id) ? 'selected' : '') . ">$className</option>";
+        }
+        ?>
+    </select>
+</div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-capitalize fw-bold">student stream</label>
-                        <select class="form-select shadow-none" name="stdnt_stream">
-                            <option disabled>Choose stream</option>
-                            <?php
-                            $selectStream = "SELECT * FROM streams";
-                            $executeStream = mysqli_query($conn, $selectStream);
-                            while ($fetchedStrm = mysqli_fetch_assoc($executeStream)) {
-                                $stream_id = $fetchedStrm['id'];
-                                $streamName = $fetchedStrm['stream_name'];
-                                echo "<option value='$stream_id' " . (($streamID == $stream_id) ? 'selected' : '') . ">$streamName</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
+<div class="mb-3">
+    <label class="form-label text-capitalize fw-bold">Student Stream</label>
+    <select id="studentStream" class="form-select shadow-none" name="stdnt_stream" required>
+        <option value="" disabled <?= !$streamID ? 'selected' : ''; ?>>Choose stream</option>
+        <?php
+        // Preload streams only if a class is selected
+        if ($classID) {
+            $selectStream = "SELECT * FROM streams WHERE class_id=$classID";
+            $executeStream = mysqli_query($conn, $selectStream);
+            while ($fetchedStrm = mysqli_fetch_assoc($executeStream)) {
+                $stream_id = $fetchedStrm['id'];
+                $streamName = $fetchedStrm['stream_name'];
+                echo "<option value='$stream_id' " . (($streamID == $stream_id) ? 'selected' : '') . ">$streamName</option>";
+            }
+        }
+        ?>
+    </select>
+</div>
+
+<!-- jQuery for AJAX -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function(){
+    function loadStreams(classID, selectedStream = null){
+        if(!classID) return;
+        $.get("get_streams.php", { class_id: classID })
+         .done(function(data){
+            $("#studentStream").html(data);
+            if(selectedStream) $("#studentStream").val(selectedStream);
+         })
+         .fail(function(xhr){
+            console.error("Stream AJAX Error:", xhr.responseText);
+         });
+    }
+
+    // On class change → fetch streams
+    $("#studentClass").change(function(){
+        loadStreams($(this).val());
+    });
+
+    // Preload streams if a class is already selected
+    <?php if($classID): ?>
+        loadStreams(<?= intval($classID) ?>, <?= $streamID ? intval($streamID) : 'null' ?>);
+    <?php endif; ?>
+});
+</script>
+
 
                     <div class="mb-3">
                         <label for="image" class="form-label text-capitalize fw-bold">upload new image</label>
