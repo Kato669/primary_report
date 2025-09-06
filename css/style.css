@@ -1,0 +1,250 @@
+:root{
+    --primary-color: #009549;
+    --secondary-color: #0095486c;
+    --tertiary-color: #430d0d;
+    --border-color: #f1f1f1;
+    --background-color: #222f3e;
+    --hover-color: #007a3d;
+    --backgroundColor: #EEF1F5;
+}
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+body{
+    background-color: var(--backgroundColor);
+}
+.icon-bar{
+    cursor: pointer;
+}
+main{
+    width: 100%;
+    color: #fff;
+    background-color: var(--primary-color);
+    height: 40px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1;
+}
+.name{
+    font-size: 18px;
+    position: absolute;
+    left: 18%;
+    transition: all 1s;
+}
+.name.active{
+    left: 3%;
+}
+/* left bar */
+.left-bar {
+    height: 100vh;
+    width: 18%;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+    padding-top: 5px;
+    overflow-y: auto;
+    margin-top: 40px;
+}
+
+.left-bar.active {
+    width: 3%;
+}
+
+.left-bar .side-text{
+    color: var(--border-color);
+}
+.left-bar .side-text.active{
+    display: none;
+}
+
+.left-bar a {
+    display: block;
+    padding: 10px 12px;
+    width: 100%;
+    box-sizing: border-box;
+    color: var(--border-color);
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid var(--background-color) ;
+}
+
+.left-bar a:hover {
+    background-color: var(--background-color);
+}
+.left-bar a.active-link {
+    background-color: var(--background-color);
+    font-weight: bold;
+    border-left: 4px solid var(--hover-color);
+    width: 100%;
+}
+
+.left-bar span{
+    padding-left: 6px;
+}
+
+/* right bar */
+.right-bar{
+    margin-top: 40px;
+    height: 100vh;
+    width: 82%;
+    transition: all 1s;
+    /* color: var(--border-color); */
+    padding: 16px;
+}
+.right-bar.active{
+    width: 97%;
+}
+.toggleBar{
+    display: none;
+    cursor: pointer;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 992px) {
+    .left-bar .side-text{
+    display: none;
+    }
+    .toggleBar{
+        display: none;
+    }
+    .left-bar {
+        width: 8%;
+    }
+    .right-bar {
+        width: 92%;
+    }
+    .name {
+        left: 8%;
+    }
+    .name.active {
+        left: 2%;
+    }
+    .left-bar.active {
+        width: 0;
+    }
+    .right-bar.active {
+        width: 100%;
+    }
+    main{
+        padding: 5px 0;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .toggleBar{
+        display: none;
+    }
+    main {
+        height: 48px;
+        font-size: 16px;
+    }
+    .left-bar {
+        position: fixed;
+        left: 0;
+        top: 40px;
+        width: 60vw;
+        max-width: 260px;
+        z-index: 2;
+        margin-top: 0;
+        height: calc(100vh - 40px);
+        box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        transform: translateX(-100%);
+    }
+    .left-bar.active {
+        transform: translateX(0);
+        width: 60vw;
+    }
+    .right-bar {
+        width: 100%;
+        margin-top: 48px;
+        padding: 8px;
+    }
+    .toggleBar {
+        display: block;
+        position: absolute;
+        left: 12px;
+        top: 8px;
+        z-index: 3;
+    }
+    .name, .name.active {
+        position: static;
+        left: unset;
+        margin-left: 48px;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    /* .dashboard{
+        display: flex;
+    } */
+    .toggleBar{
+        display: block;
+        
+    }
+    .icon-bar{
+        display: none;
+    }
+    main {
+        height: 90px;
+        font-size: 15px;
+    }
+    .left-bar {
+        width: 80vw;
+        max-width: 220px;
+        padding-top: 0;
+        font-size: 14px;
+        transform: translateX(-100%);
+        margin-top: 90px;
+        margin-bottom: 30px;
+    }
+    .left-bar.show {
+        transform: translateX(0);
+        width: 80vw;
+    }
+    .right-bar {
+        width: 100%;
+        margin-top: 90px;
+        padding: 4px;
+        font-size: 14px;
+        margin-bottom: 30px;
+    }
+    .toggleBar {
+        display: block;
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        z-index: 3;
+    }
+    .name, .name.active {
+        position: static;
+        left: unset;
+        margin-left: 48px;
+        font-size: 15px;
+    }
+}
+
+/* working on footer */
+.hidden{
+    margin: 30px 0;
+    height: 10px;
+}
+
+.footer{ 
+    background-color: var(--primary-color); 
+    position: fixed; 
+    bottom: 0; 
+    height: 30px; 
+    left: 0; 
+    width: 100%;
+}
+
+/* styling table */
+table th, table td{
+    color: var(--background-color);
+}
