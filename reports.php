@@ -265,7 +265,9 @@ $class_positions = []; $p=1; foreach($ranked as $sid=>$t){ $class_positions[$sid
 $class_count = count($students_class);
 
 /* totals for stream (selected stream students only) */
+
 $totals_stream = [];
+
 foreach($students_stream as $sid => $st) {
     $totals_stream[$sid] = compute_total_for_student($sid, $subjects, $exam_rows, $marks_map);
 }
@@ -281,12 +283,12 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
 <style>
   .report-card{ 
     padding:20px; 
-    margin-bottom:50px; 
+    /* margin:10px;  */
     border: 2px solid #000000ff; 
     background:#fff; 
     position:relative; 
-    width: 85%;
-    margin: auto;
+    width: 90%;
+    margin: 50px auto 10px;
   }
   .report-watermark{ 
     position:absolute; 
@@ -343,8 +345,33 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
     color: #0b00acff;
     font-weight: 700;
   }
-</style>
+  @media print {
+    body * {
+        visibility: hidden; /* hide everything */
+    }
+    .report-card {
+        visibility: visible; /* show report cards */
+        position: relative; /* allow stacking vertically */
+        width: 100%;
+        page-break-after: always; /* ensure each card prints on separate page */
+    }
+    .report-card * { visibility: visible; }
+    .btn { display: none; } /* hide buttons on print */
 
+}
+
+/* button starts */
+</style>
+<div class="my-3  d-flex gap-2">
+    <!-- <button class="btn btn-primary" onclick="window.print()">
+        <i class="fa fa-print"></i> Print All
+    </button> -->
+    <button class="btn btn-success" id="downloadPdf">
+        <i class="fa fa-file-pdf"></i> Download PDF
+    </button>
+</div>
+<!-- button ends -->
+<div id="reportCardsContainer">
 <?php
 foreach($students_stream as $sid => $stu){
     $student_name = $stu['first_name'].' '.$stu['last_name'];
@@ -354,14 +381,16 @@ foreach($students_stream as $sid => $stu){
     $class_pos = $class_positions[$sid] ?? '-';
     $stream_pos = $stream_positions[$sid] ?? '-';
     ?>
+    <!-- <button onclick="window.print()" class="btn btn-primary">Print Report</button> -->
+
     <div class="report-card">
       <div class="report-watermark"></div>
         <div class="container">
           <div class="row align-items-center text-uppercase" style="font-weight:700;">
-            <div class="col-lg-4 text-center text-lg-start">
+            <div class="col-lg-4 col-4 text-center text-lg-start">
               <img src="img/logo.png" style="width:160px; height:auto;" alt="logo">
             </div>
-            <div class="col-lg-4 text-center">
+            <div class="col-lg-4 col-4 text-center">
               <div class="fw-bold fs-6"><?php echo htmlspecialchars($school_name) ?></div>
               <?php echo htmlspecialchars($school_address) . "<br>" . 
                     htmlspecialchars("Tel: $school_tel") . "<br>" . 
@@ -370,7 +399,7 @@ foreach($students_stream as $sid => $stu){
               <div class="text-uppercase"><?php echo htmlspecialchars($school_motto) ?></div>
               <div class="mt-2 fw-bold"><?php echo htmlspecialchars("END OF $term_name $sel_year REPORT") ?></div>
             </div>
-            <div class="col-lg-4 text-center text-lg-end">
+            <div class="col-lg-4 col-4 text-center text-lg-end">
               <img style="width: 160px; height:auto" src="<?php echo $student_img?>" alt="student" class="student-photo" onerror="this.src='img/stdent_image/default.png'">
             </div>
           </div>
@@ -526,7 +555,7 @@ foreach($students_stream as $sid => $stu){
       </div>
 
       <!-- comments -->
-      <div style="display:flex; margin-top:55px;">
+      <div style="display:flex; margin-top: 30px;">
         <div style="flex:1;">
           <strong>Class Teacher's Comment</strong>
           <div class="signature"><?php echo nl2br(htmlspecialchars($ct_map[$sid] ?? '')); ?></div><br>
@@ -555,8 +584,20 @@ foreach($students_stream as $sid => $stu){
     </div>
 
     <div class="page-break"></div>
-<?php } // end foreach students_stream ?>
+  <?php } // end foreach students_stream ?>
+</div>
 
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+document.getElementById("downloadPdf").addEventListener("click", function () {
+    const element = document.getElementById("reportCardsContainer");
+    html2pdf()
+        .set({margin:0.3, filename:'Class_Report.pdf', html2canvas:{scale:2}})
+        .from(element)
+        .save();
+});
+
+</script>
 
 <?php include("partials/footer.php"); ?>
