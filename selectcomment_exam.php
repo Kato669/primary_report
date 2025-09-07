@@ -2,57 +2,70 @@
 ob_start();
 include("partials/header.php");
 
-// Allow class_teacher or admin (headteacher) to access
-if (!isset($_SESSION['logged_in']) || !in_array($_SESSION['role'], ['class_teacher', 'admin'])) {
+// ---------------- Role & Login Check ----------------
+if(!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'class_teacher'){
     $_SESSION['must_login'] = "Please log in first.";
     header("Location: login.php");
     exit;
 }
 
-$class_id  = $_SESSION['class_id'] ?? null;
-$stream_id = $_SESSION['stream_id'] ?? null;
+$class_id = $_SESSION['class_id'] ?? null;
 
-if (!$class_id || !$stream_id) {
-    echo "<div class='alert alert-danger'>Class/Stream not assigned.</div>";
+if(!$class_id){
+    echo '<div class="alert alert-danger">Class not assigned.</div>';
     include("partials/footer.php");
     exit;
 }
 
-// Fetch unique exams (one per exam_name) for dropdown
-$exam_res = mysqli_query($conn, "
-    SELECT MIN(exam_id) AS exam_id, exam_name
-    FROM exams
-    GROUP BY exam_name
-    ORDER BY exam_name ASC
+// ---------------- Fetch terms for this class ----------------
+// Group by term_id & academic_year to avoid duplicates
+$term_res = mysqli_query($conn, "
+    SELECT term_id, academic_year 
+    FROM exams 
+    WHERE class_id = $class_id
+    GROUP BY term_id, academic_year
+    ORDER BY academic_year DESC, term_id ASC
 ");
 
-// Handle selection
-if (isset($_POST['select_exam'])) {
-    $_SESSION['exam_id'] = intval($_POST['exam_id']);
-    header("Location: add_comments.php"); // redirect to comment form
+// ---------------- Handle term selection ----------------
+if(isset($_POST['select_term'])){
+    $_SESSION['term'] = intval($_POST['term_id']);
+    $_SESSION['year'] = intval($_POST['academic_year']);
+    header("Location: add_comments.php");
     exit;
 }
 ?>
 
 <div class="container my-4">
-    <h3 class="mb-3">Select Exam to Add Comments</h3>
+    <h3 class="mb-3">Select Term to Add Comments</h3>
     <form method="POST">
-        <div class="row">
-            <div class="col-lg-6 shadow rounded p-5">
-                <div class="mb-3">
-                    <select name="exam_id" class="form-select" required>
-                        <option value="" disabled selected>Select Exam</option>
-                        <?php while ($exam = mysqli_fetch_assoc($exam_res)): ?>
-                            <option value="<?php echo $exam['exam_id']; ?>">
-                                <?php echo htmlspecialchars($exam['exam_name']); ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                <button type="submit" name="select_exam" class="btn btn-primary">Proceed to Comment Form</button>
-            </div>
+        <div class="mb-3">
+            <select name="term_id" class="form-select" required>
+                <option value="" disabled selected>Select Term</option>
+                <?php while($term = mysqli_fetch_assoc($term_res)): ?>
+                    <option value="<?php echo $term['term_id']; ?>" data-year="<?php echo $term['academic_year']; ?>">
+                        Term <?php echo $term['term_id']; ?> <?php echo $term['academic_year']; ?>
+                    </option>
+                <?php endwhile; ?>
+            </select>
         </div>
+
+        <!-- Hidden input for academic year -->
+        <input type="hidden" name="academic_year" id="academic_year">
+
+        <button type="submit" name="select_term" class="btn btn-primary">Proceed to Comment Form</button>
     </form>
 </div>
+
+<script>
+    // Set hidden academic_year based on selected term
+    const termSelect = document.querySelector('select[name="term_id"]');
+    const yearInput = document.getElementById('academic_year');
+
+    termSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        yearInput.value = selectedOption.getAttribute('data-year');
+    });
+</script>
 
 <?php include("partials/footer.php"); ?>

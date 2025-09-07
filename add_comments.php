@@ -99,7 +99,7 @@ $students_res = mysqli_query($conn, $student_sql);
 
     <form method="POST" action="">
         <table class="table table-bordered">
-            <thead class="table-dark">
+            <thead class="table-success">
                 <tr>
                     <th>Student Name</th>
                     <th>Total Average</th>
