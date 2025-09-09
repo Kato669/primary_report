@@ -138,6 +138,7 @@ if (isset($_POST['user'])) {
                         <option selected disabled>Choose role</option>
                         <option value="admin" <?= ($role === "admin") ? "selected" : "" ?>>Admin</option>
                         <option value="class_teacher" <?= ($role === "class_teacher") ? "selected" : "" ?>>Class Teacher</option>
+                        <option value="teacher" <?= ($role === "teacher") ? "selected" : "" ?>>Teacher</option>
                     </select>
                 </div>
                 <button type="submit" name="user" class="btn btn-primary text-capitalize">Add user</button>

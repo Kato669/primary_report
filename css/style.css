@@ -42,13 +42,14 @@ main{
 }
 /* left bar */
 .left-bar {
-    height: 100vh;
+    height: auto;
     width: 18%;
     background-color: var(--primary-color);
     transition: width 0.3s ease;
     padding-top: 5px;
     overflow-y: auto;
     margin-top: 40px;
+    overflow-y: hidden;
 }
 
 .left-bar.active {

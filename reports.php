@@ -6,11 +6,26 @@ function esc($v){ global $conn; return mysqli_real_escape_string($conn, trim($v)
 function iint($v){ return intval($v ?? 0); }
 
 /* ---------------- school info ---------------- */
-$school_name    = "KATO PRIMARY SCHOOL";
-$school_address = "P O BOX 100, KYOTERA";
-$school_tel     = "256744683027/256700302123";
-$school_email   = "info@kps.ac.ug";
-$school_motto   = "'Now or Never'";
+// fetch from profile
+$select_profile = "SELECT * FROM school_profile";
+$execute_profile = mysqli_query($conn, $select_profile);
+if(!$execute_profile){
+    die("Failed execution". mysqli_error($conn));
+}
+$row_profile = mysqli_fetch_assoc($execute_profile);
+$school_profile = $row_profile['school_name'];
+$location = $row_profile['address'];
+$contact_1 = $row_profile['phone_1'];
+$contact_2 = $row_profile['phone_2'];
+$email = $row_profile['email'];
+$motto = $row_profile['motto'];
+$logo = $row_profile['profile_image'];
+// end profile
+$school_name    = $school_profile." "."P/S";
+$school_address = "P.O BOX"." ".$contact_2." ".$location;
+$school_tel     = $contact_1;
+$school_email   = $email;
+$school_motto   = $motto;
 
 /* ---------------- role & filters ---------------- */
 $role = $_SESSION['role'] ?? '';
@@ -336,7 +351,7 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
   }
   .signature{ 
     border-bottom:1px dotted #333; 
-    width: 50%;
+    width: 90%;
   } 
   .page-break{ 
     page-break-after:always; 
@@ -386,12 +401,12 @@ foreach($students_stream as $sid => $stu){
     <div class="report-card">
       <div class="report-watermark"></div>
         <div class="container">
-          <div class="row align-items-center text-uppercase" style="font-weight:700;">
-            <div class="col-lg-3 col-4 text-center text-lg-start">
-              <img src="img/logo.png" style="width:100px; height:auto;" alt="logo">
+          <div class="row align-items-center" style="font-weight:700;">
+            <div class="col-lg-3 col-3 text-center text-lg-start">
+              <img src="<?php echo $logo ?>" style="width:100px; height:auto;" alt="logo">
             </div>
-            <div class="col-lg-6 col-4 text-center">
-              <div class="fw-bold fs-6"><?php echo ("<span style='font-size: 1.5rem'>$school_name</span>") ?></div>
+            <div class="col-lg-6 col-6 text-center">
+              <div class="fw-bold fs-6"><?php echo ("<span style='font-size: 1.4rem'>$school_name</span>") ?></div>
               <?php echo htmlspecialchars($school_address) . "<br>" . 
                     htmlspecialchars("Tel: $school_tel") . "<br>" . 
                     htmlspecialchars("Email: $school_email"); 
@@ -399,7 +414,7 @@ foreach($students_stream as $sid => $stu){
               <div class="text-uppercase"><?php echo htmlspecialchars($school_motto) ?></div>
               <div class="mt-2 fw-bold"><?php echo htmlspecialchars("END OF $term_name $sel_year REPORT") ?></div>
             </div>
-            <div class="col-lg-3 col-4 text-center text-lg-end">
+            <div class="col-lg-3 col-3 text-center text-lg-end">
               <img style="width: 100px; height:auto" src="<?php echo $student_img?>" alt="student" class="student-photo" onerror="this.src='img/stdent_image/default.png'">
             </div>
           </div>
@@ -557,22 +572,31 @@ foreach($students_stream as $sid => $stu){
         <div style="flex:1;">
           <strong>Class Teacher's Comment</strong>
           <div class="signature"><?php echo nl2br(htmlspecialchars($ct_map[$sid] ?? '')); ?></div><br>
-          <div>Signature: ____________________</div>
+          <div>Signature: _______________________________</div>
         </div>
         <div style="flex:1;">
           <strong>Head Teacher's Comment</strong>
           <div class="signature"><?php echo nl2br(htmlspecialchars($ht_map[$sid] ?? '')); ?></div><br>
-          <div>Signature: ____________________</div>
+          <div>Signature: _______________________________</div>
         </div>
       </div>
 
 <hr style="height: 3px; background-color: #000000 !important; border: none;">
       <div style="text-align:center; margin-top:20px; font-weight:700;">
         <?php
-          $term_end = '2025-08-21';
-          $next_start = '2025-09-15';
-          $fees_day = '450,000/=';
-          $fees_boarding = '1,100,000/=';
+          $select_fees = "SELECT * FROM term_info WHERE class_id=$sel_class";
+          $execute_fees = mysqli_query($conn, $select_fees);
+          if($execute_fees && mysqli_num_rows($execute_fees) > 0){
+            $fetch_fees = mysqli_fetch_assoc($execute_fees);
+            $end_date = $fetch_fees['term_end'];
+            $begin_term = $fetch_fees['next_start'];
+            $d_fees = $fetch_fees['fees_day'];
+            $b_fees = $fetch_fees['fees_boarding'];
+          }
+          $term_end = $end_date;
+          $next_start = $begin_term;
+          $fees_day = round($d_fees, 0);
+          $fees_boarding = round($b_fees, 0);
           echo "This Term has ended On: <span class='text-danger'>$term_end</span> | Next Term Begins On: <span class='text-danger'>$next_start</span><br>";
           echo "Next Term Fees: Day: <span class='text-danger'>$fees_day</span> | Boarding: <span class='text-danger'>$fees_boarding</span><br>";
           echo "<span style='font-size: .8rem; font-style:italic'>This Report is invalid without school Stamp</span>";

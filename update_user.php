@@ -40,6 +40,7 @@ $current_password = $fetchUser['password'];
                         <option selected disabled>Choose role</option>
                         <option value="admin" <?php echo $fetchUser["role"] === "admin" ? "selected" : ""; ?>>Admin</option>
                         <option value="class_teacher" <?php echo $fetchUser["role"] === "class_teacher" ? "selected" : ""; ?>>Class Teacher</option>
+                        <option value="teacher" <?php echo $fetchUser["role"] === "teacher" ? "selected" : ""; ?>>Teacher</option>
                     </select>
                 </div>
         </div>

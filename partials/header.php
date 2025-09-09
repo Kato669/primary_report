@@ -38,6 +38,21 @@
             </h3>
           </div>
           <div class="col-lg-9 d-flex justify-content-end gap-4 top-right">
+            <!-- dropdown -->
+            <?php if(isset($_SESSION["role"]) && $_SESSION['role']==="admin"): ?>
+              <li class="nav-item dropdown" style="list-style: none;">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Settings
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="<?php echo SITEURL ?>update_profile.php">School Profile</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="<?php echo SITEURL ?>fees.php">Fees Structure</a></li>
+                  
+                  <!-- <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+                </ul>
+              </li>
+            <?php endif ?>
             <!-- Welcome + Class Selector -->
             <div class="d-flex align-items-center gap-2 sect_1">
               <i class="fa-solid fa-user"></i>
@@ -139,6 +154,7 @@
             <i class="fa-solid fa-bookmark"></i>
             <span class="text-capitalize side-text">report cards</span>
           </a>
+          
         </div>
 
         <div class="right-bar" id="right-bar">
