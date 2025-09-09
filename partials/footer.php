@@ -2,13 +2,13 @@
       </div>
     </div>
     <div class="hidden"></div>
-    <div class="container-fluid footer">
+    <!-- <div class="container-fluid footer mt-5">
       <div class="row">
         <div class="col-lg-12 text-center text-white mb-0 py-1">
-            copyright &copy; <a href="" class="text-white text-decoration-none">katojkalemba</a> <?php echo date("Y") ?>
+            copyright &copy; <a href="" class="text-white text-decoration-none">katojkalemba</a> 
         </div>
       </div>
-    </div>
+    </div> -->
     <!-- data table -->
     
 

@@ -1,6 +1,7 @@
 <?php 
     ob_start();
     include("partials/header.php");
+    include("partials/adminOnly.php");
     $select = "SELECT * FROM school_profile";
     $execute = mysqli_query($conn, $select);
     if(!$execute){

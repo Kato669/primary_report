@@ -1,6 +1,7 @@
 <?php 
     ob_start();
     include("partials/header.php"); 
+    include("partials/adminOnly.php");
     // Database connection (add if missing)
     // $conn = mysqli_connect("localhost", "username", "password", "database");
 

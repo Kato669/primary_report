@@ -24,31 +24,88 @@ if(isset($_SESSION['must_login'])){
   ';
   unset($_SESSION['must_login']);
 }
+
+// ====================== FETCH COUNTS ======================
+
+// Total students
+$stdnts = 0;
+$students = "SELECT COUNT(*) AS TOTAL FROM students";
+if($executeStudents = mysqli_query($conn, $students)){
+  $studentRow = mysqli_fetch_assoc($executeStudents);
+  $stdnts = $studentRow['TOTAL'];
+}
+
+// Total staff
+$count = 0;
+$users = "SELECT COUNT(*) AS COUNTUSER FROM users";
+if($executequery = mysqli_query($conn, $users)){
+  $usersCount = mysqli_fetch_assoc($executequery);
+  $count = $usersCount['COUNTUSER'];
+}
+
+// Female students
+$femaleNum = 0;
+$female = "SELECT COUNT(*) AS FEMALECOUNT FROM students WHERE gender='female'";
+if($femaleQuery = mysqli_query($conn, $female)){
+  $femaleCount = mysqli_fetch_assoc($femaleQuery);
+  $femaleNum = $femaleCount['FEMALECOUNT'];
+}
+
+// Male students
+$maleNum = 0;
+$male = "SELECT COUNT(*) AS MALECOUNT FROM students WHERE gender='male'";
+if($Querymale = mysqli_query($conn, $male)){
+  $maleCount = mysqli_fetch_assoc($Querymale);
+  $maleNum = $maleCount['MALECOUNT'];
+}
+//day students
+$dayStu = 0;
+$day = "SELECT COUNT(*) AS DAYCOUNT FROM students WHERE status='day'";
+$dayQuery = mysqli_query($conn, $day);
+$dayStudent =  mysqli_fetch_assoc($dayQuery);
+$dayStu = $dayStudent['DAYCOUNT'];
+
+//day students
+$boardingStu = 0;
+$boarding = "SELECT COUNT(*) AS BOARDINGCOUNT FROM students WHERE status='boarding'";
+$boardingQuery = mysqli_query($conn, $boarding);
+$boardingStudent =  mysqli_fetch_assoc($boardingQuery);
+$boardingStu = $boardingStudent['BOARDINGCOUNT'];
+
+
+// ====================== FETCH DATA FOR GRAPH ======================
+$class_labels = [];
+$class_counts = [];
+
+$class_query = "
+  SELECT c.class_name, COUNT(s.student_id) AS total_students
+  FROM classes c
+  LEFT JOIN students s ON s.class_id = c.id
+  GROUP BY c.id, c.class_name
+  ORDER BY c.class_name
+";
+
+$res = mysqli_query($conn, $class_query);
+if($res){
+  while($row = mysqli_fetch_assoc($res)){
+    $class_labels[] = $row['class_name'];
+    $class_counts[] = $row['total_students'];
+  }
+}
 ?>
+
 <div class="container-fluid my-4">
   <div class="row g-3">
     <!-- Total Students Card -->
     <div class="col-lg-6 col-sm-12 col-md-12">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-primary text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <!-- counting students from tables -->
-          <?php
-            $students = "SELECT COUNT(*) AS TOTAL FROM students";
-            $executeStudents = mysqli_query($conn, $students);
-            if($executeStudents){
-              $studentRow = mysqli_fetch_assoc($executeStudents);
-              $stdnts = $studentRow['TOTAL'];
-            }else{
-              $stdnts = 0;
-            }
-          ?>
           <span class="card-number fs-4 fw-bold"><?php echo $stdnts ?></span>
           <span class="card-icon fs-3"><i class="fa-solid fa-users"></i></span>
         </div>
         <span class="card-label text-white text-uppercase small">Total Students</span>
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="text-uppercase">in school</span>
-          <!-- <span>45%</span> -->
         </div>
       </a>
     </div>
@@ -57,91 +114,109 @@ if(isset($_SESSION['must_login'])){
     <div class="col-lg-6 col-sm-12 col-md-12">
       <a href="<?php echo SITEURL ?>users.php" class="dashboard-card text-decoration-none p-3 bg-success text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <!-- staff members around -->
-          <?php 
-            $users = "SELECT COUNT(*) AS COUNTUSER FROM users";
-            $executequery = mysqli_query($conn, $users);
-            if($executequery){
-              $usersCount = mysqli_fetch_assoc($executequery);
-              $count = $usersCount['COUNTUSER'];
-            }else{
-              $count = 0;
-            }
-          ?>
           <span class="card-number fs-4 fw-bold"><?php echo $count ?></span>
           <span class="card-icon fs-3"><i class="fa-solid fa-person-chalkboard"></i></span>
         </div>
         <span class="card-label text-white text-uppercase small">staff members</span>
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="text-uppercase">teachers</span>
-          <span>100%</span>
         </div>
       </a>
     </div>
+
     <!-- Total female Card -->
     <div class="col-lg-6 col-sm-12 col-md-12">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-secondary text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <!-- female students -->
-          <?php
-            $female = "SELECT COUNT(*) AS FEMALECOUNT FROM students WHERE gender='female'";
-            $femaleQuery = mysqli_query($conn, $female);
-            if($femaleQuery){
-              $femaleCount = mysqli_fetch_assoc($femaleQuery);
-              $femaleNum = $femaleCount['FEMALECOUNT'];
-            }else{
-              $femaleNum = 0;
-            }
-          ?>
           <span class="card-number fs-4 fw-bold"><?php echo $femaleNum ?></span>
           <span class="card-icon fs-3"><i class="fa-solid fa-person-dress"></i></span>
         </div>
         <span class="card-label text-white text-uppercase small">female Students</span>
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="text-uppercase">female</span>
-          <span>100%</span>
         </div>
       </a>
     </div>
+
     <!-- Total male Card -->
     <div class="col-lg-6 col-sm-12 col-md-12">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-danger text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <!-- male fetch -->
-          <?php
-            $male = "SELECT COUNT(*) AS MALECOUNT FROM students WHERE gender='male'";
-            $Querymale = mysqli_query($conn, $male);
-            if($Querymale){
-              $maleCount = mysqli_fetch_assoc($Querymale);
-              $maleNum = $maleCount['MALECOUNT'];
-            }else{
-              $femaleCount = 0;
-            }
-          ?>
           <span class="card-number fs-4 fw-bold"><?php echo $maleNum ?></span>
           <span class="card-icon fs-3"><i class="fa-solid fa-person"></i></span>
         </div>
         <span class="card-label text-white text-uppercase small">male Students</span>
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="text-uppercase">male</span>
-          <span>100%</span>
         </div>
       </a>
     </div>
-
   </div>
 </div>
-<!-- graph -->
- <div class="container-fluid">
+
+<!-- Dynamic Chart -->
+<div class="container-fluid my-4">
   <div class="row">
-    <div class="col-lg-6 col-12 bg-white py-3 rounded">
-      <div class="h3 fs-5 text-uppercase text-dark">
-        STUDENTS PER CLASS
-      </div>
-      <span style="border-bottom: 1px solid #000; width: 100%; display:block"></span>
-      <img src="img/graph.png" alt="" class="img-fluid">
+    <div class="col-6">
+      <div class="col-lg-12 col-sm-12 col-md-12">
+      <a href="" class="dashboard-card text-decoration-none p-3 bg-dark text-white rounded shadow-sm d-flex flex-column justify-content-between">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="card-number fs-4 fw-bold"><?php echo $dayStu ?></span>
+          <span class="card-icon fs-3"><i class="fa-solid fa-bicycle"></i></span>
+        </div>
+        <span class="card-label text-white text-uppercase small">day Students</span>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-uppercase">day</span>
+        </div>
+      </a>
+      <br>
+      <a href="" class="dashboard-card text-decoration-none p-3 bg-success text-white rounded shadow-sm d-flex flex-column justify-content-between">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="card-number fs-4 fw-bold"><?php echo $boardingStu ?></span>
+          <span class="card-icon fs-3"><i class="fa-solid fa-bed"></i></span>
+        </div>
+        <span class="card-label text-white text-uppercase small">boarding Students</span>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-uppercase">boarding</span>
+        </div>
+      </a>
+    </div>
+    </div>
+    <div class="col-lg-6 col-12 bg-white py-3 rounded shadow-sm">
+      <div class="h3 fs-5 text-uppercase text-dark">STUDENTS PER CLASS</div>
+      <canvas id="studentsChart" style="max-height: 350px;"></canvas>
     </div>
   </div>
- </div>
-<?php include("partials/footer.php"); ?>
+</div>
 
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('studentsChart').getContext('2d');
+  const studentsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: <?php echo json_encode($class_labels); ?>,
+      datasets: [{
+        label: 'Number of Students',
+        data: <?php echo json_encode($class_counts); ?>,
+        backgroundColor: '#009549',
+        borderColor: '#0056b3',
+        borderWidth: 1,
+        borderRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: true }
+      }
+    }
+  });
+</script>
+
+<?php include("partials/footer.php"); ?>

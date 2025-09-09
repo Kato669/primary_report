@@ -1,6 +1,7 @@
 <?php 
 ob_start();
 include("partials/header.php");
+include("partials/adminOnly.php");
 
 $errors = [];
 $success = "";
@@ -52,7 +53,7 @@ if (isset($_POST['fees'])) {
                     term_end='$term_end',
                     next_start='$next_start',
                     fees_day='$fees_day',
-                    fees_boarding='$fees_boarding'
+                    fees_boarding='$fees_board'
                 WHERE class_id=$class_id AND term_id=$term_id AND academic_year='$year'
             ";
             $res = mysqli_query($conn, $update_sql);

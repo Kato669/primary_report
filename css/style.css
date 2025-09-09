@@ -238,12 +238,7 @@ main{
 
 .footer{ 
     background-color: var(--primary-color); 
-    position: fixed; 
-    bottom: 0; 
-    height: 30px; 
-    /* top: 30%; */
-    left: 0; 
-    width: 100%;
+    
 }
 
 /* styling table */
