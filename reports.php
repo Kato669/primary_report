@@ -599,7 +599,7 @@ foreach($students_stream as $sid => $stu){
           $fees_boarding = round($b_fees, 0);
           echo "This Term has ended On: <span class='text-danger'>$term_end</span> | Next Term Begins On: <span class='text-danger'>$next_start</span><br>";
           echo "Next Term Fees: Day: <span class='text-danger'>$fees_day</span> | Boarding: <span class='text-danger'>$fees_boarding</span><br>";
-          echo "<span style='font-size: .8rem; font-style:italic'>This Report is invalid without school Stamp</span>";
+          echo "<span style='font-size: .8rem; font-style:italic; color: red !important'>This Report is invalid without school Stamp</span>";
         ?>
       </div>
 

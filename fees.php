@@ -5,6 +5,21 @@ include("partials/header.php");
 $errors = [];
 $success = "";
 
+// Capture selected filters (via GET or POST)
+$class_id   = intval($_REQUEST['filter_class'] ?? 0);
+$term_id    = intval($_REQUEST['filter_term'] ?? 0);
+$year       = trim($_REQUEST['filter_year'] ?? "");
+
+// Preload data if filters are set
+$existing_data = null;
+if ($class_id && $term_id && !empty($year)) {
+    $fetch_sql = "SELECT * FROM term_info WHERE class_id=$class_id AND term_id=$term_id AND academic_year='$year' LIMIT 1";
+    $fetch_res = mysqli_query($conn, $fetch_sql);
+    if ($fetch_res && mysqli_num_rows($fetch_res) > 0) {
+        $existing_data = mysqli_fetch_assoc($fetch_res);
+    }
+}
+
 // Handle form submission
 if (isset($_POST['fees'])) {
     // Sanitize and validate input
@@ -37,7 +52,7 @@ if (isset($_POST['fees'])) {
                     term_end='$term_end',
                     next_start='$next_start',
                     fees_day='$fees_day',
-                    fees_boarding='$fees_board'
+                    fees_boarding='$fees_boarding'
                 WHERE class_id=$class_id AND term_id=$term_id AND academic_year='$year'
             ";
             $res = mysqli_query($conn, $update_sql);
@@ -55,7 +70,6 @@ if (isset($_POST['fees'])) {
             $res = mysqli_query($conn, $insert_sql);
             if ($res) {
                 $success = "Fees structure added successfully.";
-                $class_id && $term_id && $year && $term_end && $next_start && $fees_day && $fees_board = "";
             } else {
                 $errors[] = "Failed to insert fees: " . mysqli_error($conn);
             }
@@ -67,86 +81,83 @@ if (isset($_POST['fees'])) {
 <div class="container-fluid">
     <h3 class="text-capitalize fs-6 text-dark py-2">Enter fees structure</h3>
 
+    <!-- FILTERS AT THE TOP -->
+    <form method="GET" class="row g-3 mb-4 shadow-sm p-3 rounded">
+        <div class="col-md-3">
+            <select class="form-select" name="filter_class" required>
+                <option value="">Select Class</option>
+                <?php 
+                    $classes = mysqli_query($conn, "SELECT * FROM classes ORDER BY class_name");
+                    while($c = mysqli_fetch_assoc($classes)){
+                        echo "<option value='{$c['id']}' ".($class_id==$c['id']?"selected":"").">{$c['class_name']}</option>";
+                    }
+                ?>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="filter_term" required>
+                <option value="">Select Term</option>
+                <?php 
+                    $terms = mysqli_query($conn, "SELECT * FROM terms ORDER BY term_id");
+                    while($t = mysqli_fetch_assoc($terms)){
+                        echo "<option value='{$t['term_id']}' ".($term_id==$t['term_id']?"selected":"").">{$t['term_name']}</option>";
+                    }
+                ?>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="text" class="form-control" name="filter_year" placeholder="Enter Year (2025)" value="<?php echo htmlspecialchars($year) ?>" required>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Load Data</button>
+        </div>
+    </form>
+
     <div class="row g-0 shadow rounded my-4 p-4">
         <?php if (!empty($errors)): ?>
-            <div class="alert alert-danger">
-                <?php foreach ($errors as $e) echo "<div>$e</div>"; ?>
-            </div>
+            <div class="alert alert-danger"><?php foreach ($errors as $e) echo "<div>$e</div>"; ?></div>
         <?php elseif (!empty($success)): ?>
             <div class="alert alert-success"><?php echo $success; ?></div>
         <?php endif; ?>
 
-        <div class="col-lg-6 col-12 p-2">
-            <form method="POST" action="">
-                <!-- Class Dropdown -->
-                <div class="mb-3">
-                    <label class="form-label text-capitalize fw-bold">Class</label>
-                    <select class="form-select shadow-none" name="class_name" required>
-                        <option selected disabled>Choose class</option>
-                        <?php 
-                            $classes = mysqli_query($conn, "SELECT * FROM classes ORDER BY class_name");
-                            if($classes && mysqli_num_rows($classes)>0){
-                                while($fetchClass = mysqli_fetch_assoc($classes)){
-                                    echo "<option value='{$fetchClass['id']}' ".($fetchClass['id']==($class_id??'')?'selected':'').">{$fetchClass['class_name']}</option>";
-                                }
-                            }
-                        ?>
-                    </select>
-                </div>
+        <!-- FORM FOR INSERT/UPDATE -->
+        <form method="POST" action="" class="row">
+            <input type="hidden" name="class_name" value="<?php echo $class_id ?>">
+            <input type="hidden" name="term" value="<?php echo $term_id ?>">
+            <input type="hidden" name="year" value="<?php echo htmlspecialchars($year) ?>">
 
-                <!-- Term Dropdown -->
-                <div class="mb-3">
-                    <label class="form-label text-capitalize fw-bold">Term</label>
-                    <select class="form-select shadow-none" name="term" required>
-                        <option selected disabled>Select</option>
-                        <?php 
-                            $terms = mysqli_query($conn, "SELECT * FROM terms ORDER BY term_id");
-                            if($terms && mysqli_num_rows($terms) > 0){
-                                while($t = mysqli_fetch_assoc($terms)){
-                                    echo "<option value='{$t['term_id']}' ".($t['term_id']==($term_id??'')?'selected':'').">{$t['term_name']}</option>";
-                                }
-                            }
-                        ?>
-                    </select>
-                </div>
-
-                <!-- Academic Year -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Academic Year</label>
-                    <input type="text" class="form-control shadow-none" name="year" placeholder="2025, 2026..." value="<?php echo htmlspecialchars($year ?? '') ?>" required>
-                </div>
-
-                <!-- Term End -->
+            <div class="col-lg-6 col-12 p-2">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Term End</label>
-                    <input type="date" class="form-control shadow-none" name="end" value="<?php echo htmlspecialchars($term_end ?? '') ?>" required>
-                    <span class="text-danger fs-6">Enter date when the term has ended</span>
+                    <input type="date" class="form-control shadow-none" name="end" 
+                           value="<?php echo $existing_data['term_end'] ?? '' ?>" required>
                 </div>
-        </div>
 
-        <div class="col-lg-6 col-12 p-2">
-            <!-- Next Term Start -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">Next Term Begins</label>
-                <input type="date" class="form-control shadow-none" name="next_term" value="<?php echo htmlspecialchars($next_start ?? '') ?>" required>
-                <span class="text-danger fs-6">Enter date when next term begins</span>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Next Term Begins</label>
+                    <input type="date" class="form-control shadow-none" name="next_term"
+                           value="<?php echo $existing_data['next_start'] ?? '' ?>" required>
+                </div>
             </div>
 
-            <!-- Day Fees -->
-            <div class="mb-3">
-                <label class="form-label fw-bold text-capitalize">Day Fees</label>
-                <input type="number" class="form-control shadow-none" name="d_fees" placeholder="Enter day fees" value="<?php echo htmlspecialchars($fees_day ?? '') ?>" required>
-            </div>
+            <div class="col-lg-6 col-12 p-2">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Day Fees</label>
+                    <input type="number" class="form-control shadow-none" name="d_fees"
+                           value="<?php echo $existing_data['fees_day'] ?? '' ?>" required>
+                </div>
 
-            <!-- Boarding Fees -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">Boarding Fees</label>
-                <input type="number" class="form-control shadow-none" name="b_fees" placeholder="Enter boarding fees" value="<?php echo htmlspecialchars($fees_board ?? '') ?>" required>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Boarding Fees</label>
+                    <input type="number" class="form-control shadow-none" name="b_fees"
+                           value="<?php echo $existing_data['fees_boarding'] ?? '' ?>" required>
+                </div>
 
-            <button type="submit" name="fees" class="btn btn-success w-100">Submit</button>
-            </form>
-        </div>
+                <button type="submit" name="fees" class="btn btn-success w-100">
+                    <?php echo $existing_data ? "Update Fees" : "Add Fees"; ?>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
