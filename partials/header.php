@@ -141,7 +141,7 @@
               <i class="fa-solid fa-comments"></i>
               <span class="text-capitalize side-text">comments</span>
           </a>
-
+        
           <a href="<?php echo SITEURL ?>examination.php" class="<?php echo isActive('examination.php'); ?>">
             <i class="fa-solid fa-file-pen"></i>
             <span class="text-capitalize side-text">examination</span>

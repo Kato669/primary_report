@@ -1,6 +1,7 @@
 <?php
 ob_start();
 include("partials/header.php");
+include("partials/adminOnly.php");
 
 $errors = [];
 
