@@ -21,44 +21,60 @@ if (!$res_assign || mysqli_num_rows($res_assign) === 0) {
 $current = mysqli_fetch_assoc($res_assign);
 
 // Pre-fill form variables
-$teacher_id = $current['teacher_id'];
-$classes = $current['class_id'];
-$stream = $current['stream_id'];
-$subject = $current['subject_id'];
-$initials = $current['initials'] ?? '';
+$teacher_id     = $current['teacher_id'];
+$classes        = $current['class_id'];
+$stream         = $current['stream_id'];
+$subject        = $current['subject_id'];
+$initials       = $current['initials'] ?? '';
+$term_id        = $current['term_id'] ?? '';
+$academic_year  = $current['academic_year'] ?? '';
 
 if (isset($_POST['update_teacher'])) {
     $teacher_id_post = intval($_POST['teacher_id'] ?? 0);
-    $classes_post = intval($_POST['classes'] ?? 0);
-    $stream_post = intval($_POST['stream'] ?? 0);
-    $subject_post = intval($_POST['subject'] ?? 0);
-    $initials_post = strtoupper(trim($_POST['initials'] ?? ''));
+    $classes_post    = intval($_POST['classes'] ?? 0);
+    $stream_post     = intval($_POST['stream'] ?? 0);
+    $subject_post    = intval($_POST['subject'] ?? 0);
+    $term_post       = intval($_POST['term_id'] ?? 0);
+    $year_post       = trim($_POST['academic_year'] ?? '');
+    $initials_post   = strtoupper(trim($_POST['initials'] ?? ''));
 
     // Validation
     if ($teacher_id_post <= 0) $errors['teacher_id'] = "Select a teacher.";
     if ($classes_post <= 0) $errors['classes'] = "Select a class.";
     if ($stream_post <= 0) $errors['stream'] = "Select a stream.";
     if ($subject_post <= 0) $errors['subject'] = "Select a subject.";
+    if ($term_post <= 0) $errors['term_id'] = "Select a term.";
+    if (empty($year_post) || !preg_match('/^[0-9]{4}$/', $year_post)) {
+        $errors['academic_year'] = "Enter a valid year (e.g. 2025).";
+    }
     if (empty($initials_post) || !preg_match('/^[A-Z]{1,5}$/', $initials_post)) {
         $errors['initials'] = "Enter valid initials (1-5 uppercase letters).";
     }
 
-    // Check for duplicate assignment (teacher + class + stream + subject) excluding current assignment
+    // Check for duplicate assignment excluding current assignment
     $dup_check = "SELECT * FROM teacher_subject_assignments 
                   WHERE teacher_id=$teacher_id_post 
                     AND class_id=$classes_post 
                     AND stream_id=$stream_post 
-                    AND subject_id=$subject_post 
+                    AND subject_id=$subject_post
+                    AND term_id=$term_post
+                    AND academic_year='$year_post'
                     AND id != $assigned_id";
     $dup_res = mysqli_query($conn, $dup_check);
     if ($dup_res && mysqli_num_rows($dup_res) > 0) {
-        $errors['duplicate'] = "This teacher already has this class/stream/subject assigned.";
+        $errors['duplicate'] = "This teacher already has this subject for the same class, stream, term, and year.";
     }
 
     // If no errors, update the assignment
     if (empty($errors)) {
         $update_sql = "UPDATE teacher_subject_assignments 
-                       SET teacher_id=$teacher_id_post, class_id=$classes_post, stream_id=$stream_post, subject_id=$subject_post, initials='".mysqli_real_escape_string($conn, $initials_post)."'
+                       SET teacher_id=$teacher_id_post, 
+                           class_id=$classes_post, 
+                           stream_id=$stream_post, 
+                           subject_id=$subject_post, 
+                           term_id=$term_post,
+                           academic_year='".mysqli_real_escape_string($conn, $year_post)."',
+                           initials='".mysqli_real_escape_string($conn, $initials_post)."'
                        WHERE id=$assigned_id";
         $res_update = mysqli_query($conn, $update_sql);
 
@@ -84,7 +100,7 @@ if (isset($_POST['update_teacher'])) {
                     <select class="form-select shadow-none" name="teacher_id" required>
                         <option selected disabled>Choose teacher</option>
                         <?php 
-                        $user = "SELECT * FROM users";
+                        $user = "SELECT * FROM users ORDER BY fullname";
                         $executeUser = mysqli_query($conn, $user);
                         while($fetchUser = mysqli_fetch_assoc($executeUser)) {
                             $u_id = $fetchUser['user_id'];
@@ -111,7 +127,7 @@ if (isset($_POST['update_teacher'])) {
                     <select class="form-select shadow-none" name="classes" required>
                         <option disabled <?php echo empty($classes) ? 'selected' : ''; ?>>Choose class</option>
                         <?php 
-                        $class = "SELECT * FROM classes";
+                        $class = "SELECT * FROM classes ORDER BY class_name";
                         $executeClass = mysqli_query($conn, $class);
                         while($fetchClass = mysqli_fetch_assoc($executeClass)) {
                             $c_id = $fetchClass['id'];
@@ -151,7 +167,7 @@ if (isset($_POST['update_teacher'])) {
                     <select class="form-select shadow-none" name="subject" required>
                         <option disabled <?php echo empty($subject) ? 'selected' : ''; ?>>Choose subject</option>
                         <?php 
-                        $subjectQ = "SELECT * FROM subjects";
+                        $subjectQ = "SELECT * FROM subjects ORDER BY subject_name";
                         $executesubject = mysqli_query($conn, $subjectQ);
                         while($fetchSubject = mysqli_fetch_assoc($executesubject)) {
                             $sub_id = $fetchSubject['subject_id'];
@@ -163,6 +179,29 @@ if (isset($_POST['update_teacher'])) {
                         <?php } ?>
                     </select>
                     <?php if(isset($errors['subject'])) echo "<small class='text-danger'>{$errors['subject']}</small>"; ?>
+                </div>
+
+                <!-- Term -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Term</label>
+                    <select class="form-select shadow-none" name="term_id" required>
+                        <option disabled selected>Choose term</option>
+                        <?php
+                        $terms_res = mysqli_query($conn, "SELECT * FROM terms ORDER BY term_id");
+                        while($term = mysqli_fetch_assoc($terms_res)){
+                            $selected = ($term_id == $term['term_id']) ? 'selected' : '';
+                            echo "<option value='{$term['term_id']}' {$selected}>{$term['term_name']}</option>";
+                        }
+                        ?>
+                    </select>
+                    <?php if(isset($errors['term_id'])) echo "<small class='text-danger'>{$errors['term_id']}</small>"; ?>
+                </div>
+
+                <!-- Academic Year -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Academic Year</label>
+                    <input type="text" class="form-control shadow-none" name="academic_year" placeholder="2025" value="<?php echo htmlspecialchars($academic_year); ?>">
+                    <?php if(isset($errors['academic_year'])) echo "<small class='text-danger'>{$errors['academic_year']}</small>"; ?>
                 </div>
 
                 <?php if(isset($errors['duplicate'])) echo "<small class='text-danger'>{$errors['duplicate']}</small>"; ?>

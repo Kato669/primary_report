@@ -4,67 +4,74 @@ include("partials/header.php");
 include("partials/adminOnly.php");
 
 // Initialize variables
-$teacher_id = $initials = $classes = $stream = $subject = "";
+$teacher_id = $initials = $classes = $stream = $subject = $term_id = $academic_year = "";
 $errors = [];
 
 if(isset($_POST['addteacher'])){
     // Get and sanitize input
     $teacher_id = $_POST['teacher_id'] ?? "";
-    $initials = strtoupper(trim($_POST['initials'] ?? ""));
-    $classes = $_POST['classes'] ?? "";
-    $stream = $_POST['stream'] ?? "";
-    $subject = $_POST['subject'] ?? "";
+    $initials   = strtoupper(trim($_POST['initials'] ?? ""));
+    $classes    = $_POST['classes'] ?? "";
+    $stream     = $_POST['stream'] ?? "";
+    $subject    = $_POST['subject'] ?? "";
+    $term_id    = $_POST['term_id'] ?? "";
+    $academic_year = trim($_POST['academic_year'] ?? "");
 
-    // Validate teacher_id
+    // Validation
     if(empty($teacher_id) || !ctype_digit($teacher_id)){
         $errors['teacher_id'] = "Valid teacher selection is required.";
     }
-
-    // Validate initials
     if(empty($initials)){
         $errors['initials'] = "Initials are required.";
     } elseif(!preg_match('/^[A-Z]+$/', $initials)){
         $errors['initials'] = "Initials must contain only uppercase letters.";
     }
-
-    // Validate class
     if(empty($classes) || !ctype_digit($classes)){
         $errors['classes'] = "Valid class selection is required.";
     }
-
-    // Validate stream
     if(empty($stream) || !ctype_digit($stream)){
         $errors['stream'] = "Valid stream selection is required.";
     }
-
-    // Validate subject
     if(empty($subject) || !ctype_digit($subject)){
         $errors['subject'] = "Valid subject selection is required.";
     }
+    if(empty($term_id) || !ctype_digit($term_id)){
+        $errors['term_id'] = "Please select a term.";
+    }
+    if(empty($academic_year) || !preg_match('/^[0-9]{4}$/', $academic_year)){
+        $errors['academic_year'] = "Please enter a valid academic year (e.g. 2025).";
+    }
 
-    // Check for duplication
     if(empty($errors)){
+        // Escape inputs
         $teacher_idEsc = mysqli_real_escape_string($conn, $teacher_id);
-        $initialsEsc = mysqli_real_escape_string($conn, $initials);
-        $classesEsc = mysqli_real_escape_string($conn, $classes);
-        $streamEsc = mysqli_real_escape_string($conn, $stream);
-        $subjectEsc = mysqli_real_escape_string($conn, $subject);
+        $initialsEsc   = mysqli_real_escape_string($conn, $initials);
+        $classesEsc    = mysqli_real_escape_string($conn, $classes);
+        $streamEsc     = mysqli_real_escape_string($conn, $stream);
+        $subjectEsc    = mysqli_real_escape_string($conn, $subject);
+        $termEsc       = mysqli_real_escape_string($conn, $term_id);
+        $yearEsc       = mysqli_real_escape_string($conn, $academic_year);
 
+        // Check duplicates (now includes term & year)
         $dup_sql = "SELECT * FROM teacher_subject_assignments 
                     WHERE teacher_id='$teacher_idEsc' 
                       AND class_id='$classesEsc' 
                       AND stream_id='$streamEsc' 
-                      AND subject_id='$subjectEsc'";
+                      AND subject_id='$subjectEsc'
+                      AND term_id='$termEsc'
+                      AND academic_year='$yearEsc'";
         $dup_res = mysqli_query($conn, $dup_sql);
 
         if(mysqli_num_rows($dup_res) > 0){
-            echo '<div class="alert alert-warning">This teacher is already assigned to this class, stream, and subject.</div>';
+            echo '<div class="alert alert-warning">This teacher is already assigned for this class, stream, subject, and term.</div>';
         } else {
-            $sql = "INSERT INTO teacher_subject_assignments (teacher_id, initials, class_id, stream_id, subject_id) 
-                    VALUES ('$teacher_idEsc', '$initialsEsc', '$classesEsc', '$streamEsc', '$subjectEsc')";
+            $sql = "INSERT INTO teacher_subject_assignments 
+                    (teacher_id, initials, class_id, stream_id, subject_id, term_id, academic_year) 
+                    VALUES 
+                    ('$teacher_idEsc', '$initialsEsc', '$classesEsc', '$streamEsc', '$subjectEsc', '$termEsc', '$yearEsc')";
             if(mysqli_query($conn, $sql)){
                 echo '<div class="alert alert-success">Teacher assignment added successfully.</div>';
-                $teacher_id = $initials = $classes = $stream = $subject = "";
+                $teacher_id = $initials = $classes = $stream = $subject = $term_id = $academic_year = "";
             } else {
                 echo '<div class="alert alert-danger">Error: '.mysqli_error($conn).'</div>';
             }
@@ -80,7 +87,7 @@ if(isset($_POST['addteacher'])){
             <form method="POST" action="">
                 <!-- Teacher Dropdown -->
                 <div class="mb-3">
-                    <label for="teacher_id" class="form-label fw-bold">Teacher Fullname</label>
+                    <label class="form-label fw-bold">Teacher Fullname</label>
                     <select class="form-select shadow-none" name="teacher_id" required>
                         <option selected disabled>Choose teacher</option>
                         <?php 
@@ -91,18 +98,14 @@ if(isset($_POST['addteacher'])){
                         }
                         ?>
                     </select>
-                    <?php if(isset($errors['teacher_id'])): ?>
-                        <small class="text-danger"><?= $errors['teacher_id']; ?></small>
-                    <?php endif; ?>
+                    <?php if(isset($errors['teacher_id'])): ?><small class="text-danger"><?= $errors['teacher_id']; ?></small><?php endif; ?>
                 </div>
 
                 <!-- Initials -->
                 <div class="mb-3">
-                    <label for="initials" class="form-label fw-bold">Teacher Initials</label>
+                    <label class="form-label fw-bold">Teacher Initials</label>
                     <input type="text" class="form-control shadow-none text-uppercase" name="initials" placeholder="JD" value="<?= htmlspecialchars($initials); ?>">
-                    <?php if(isset($errors['initials'])): ?>
-                        <small class="text-danger"><?= $errors['initials']; ?></small>
-                    <?php endif; ?>
+                    <?php if(isset($errors['initials'])): ?><small class="text-danger"><?= $errors['initials']; ?></small><?php endif; ?>
                 </div>
 
                 <!-- Class Dropdown -->
@@ -118,9 +121,7 @@ if(isset($_POST['addteacher'])){
                         }
                         ?>
                     </select>
-                    <?php if(isset($errors['classes'])): ?>
-                        <small class="text-danger"><?= $errors['classes']; ?></small>
-                    <?php endif; ?>
+                    <?php if(isset($errors['classes'])): ?><small class="text-danger"><?= $errors['classes']; ?></small><?php endif; ?>
                 </div>
 
                 <!-- Stream Dropdown -->
@@ -138,9 +139,7 @@ if(isset($_POST['addteacher'])){
                         }
                         ?>
                     </select>
-                    <?php if(isset($errors['stream'])): ?>
-                        <small class="text-danger"><?= $errors['stream']; ?></small>
-                    <?php endif; ?>
+                    <?php if(isset($errors['stream'])): ?><small class="text-danger"><?= $errors['stream']; ?></small><?php endif; ?>
                 </div>
 
                 <!-- Subject Dropdown -->
@@ -161,12 +160,33 @@ if(isset($_POST['addteacher'])){
                         }
                         ?>
                     </select>
-                    <?php if(isset($errors['subject'])): ?>
-                        <small class="text-danger"><?= $errors['subject']; ?></small>
-                    <?php endif; ?>
+                    <?php if(isset($errors['subject'])): ?><small class="text-danger"><?= $errors['subject']; ?></small><?php endif; ?>
                 </div>
 
-                <button type="submit" name="addteacher" class="btn btn-success text-capitalize">Add teacher</button>
+                <!-- Term Dropdown -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Term</label>
+                    <select class="form-select shadow-none" name="term_id" required>
+                        <option selected disabled>Choose term</option>
+                        <?php
+                        $terms_res = mysqli_query($conn, "SELECT * FROM terms ORDER BY term_id");
+                        while($term = mysqli_fetch_assoc($terms_res)){
+                            $selected = ($term_id == $term['term_id']) ? 'selected' : '';
+                            echo "<option value='{$term['term_id']}' {$selected}>{$term['term_name']}</option>";
+                        }
+                        ?>
+                    </select>
+                    <?php if(isset($errors['term_id'])): ?><small class="text-danger"><?= $errors['term_id']; ?></small><?php endif; ?>
+                </div>
+
+                <!-- Academic Year -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Academic Year</label>
+                    <input type="text" class="form-control shadow-none" name="academic_year" placeholder="2025, 2026..." value="<?= htmlspecialchars($academic_year); ?>" required>
+                    <?php if(isset($errors['academic_year'])): ?><small class="text-danger"><?= $errors['academic_year']; ?></small><?php endif; ?>
+                </div>
+
+                <button type="submit" name="addteacher" class="btn btn-success text-capitalize">Add Teacher</button>
             </form>
         </div>
     </div>
@@ -178,12 +198,10 @@ $(document).ready(function(){
     $('#classSelect').change(function(){
         var classID = $(this).val();
 
-        // Update streams
         $.get('get_streams.php', {class_id: classID}, function(data){
             $('#streamSelect').html(data);
         });
 
-        // Update subjects
         $.get('get_subjects.php', {class_id: classID}, function(data){
             $('#subjectSelect').html(data);
         });

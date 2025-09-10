@@ -232,10 +232,20 @@ if (!empty($exam_ids) && !empty($students_stream)) {
 
 /* ---------------- Preload initials from teacher_subject_assignments for this class+stream ---------------- */
 $initials_map = []; // initials_map[subject_id] = initials
-$ir = mysqli_query($conn, "SELECT subject_id, initials FROM teacher_subject_assignments WHERE class_id=$sel_class AND stream_id=$sel_stream");
+$ir = mysqli_query($conn, "
+    SELECT subject_id, initials 
+    FROM teacher_subject_assignments 
+    WHERE class_id = $sel_class 
+      AND stream_id = $sel_stream
+      AND term_id = $sel_term
+      AND academic_year = '{$sel_year}'
+");
 if ($ir) {
-    while($i = mysqli_fetch_assoc($ir)) $initials_map[$i['subject_id']] = $i['initials'] ?? '';
+    while($i = mysqli_fetch_assoc($ir)) {
+        $initials_map[$i['subject_id']] = $i['initials'] ?? '';
+    }
 }
+
 
 /* ---------------- grading ---------------- */
 $grading = [];

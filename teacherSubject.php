@@ -56,7 +56,7 @@ if(isset($_SESSION['success'])){
     <div class="row g-0 my-2">
         <div class="col-lg-4 col-md-4 col-sm-12">
             <a href="<?php echo SITEURL ?>addteachersub.php" class="btn text-capitalize text-white btn-success fs-6">
-                add term
+                assign subject
                 <i class="fa-solid fa-pen-to-square"></i>
             </a>
         </div>
@@ -71,6 +71,8 @@ if(isset($_SESSION['success'])){
                         <th class="text-capitalize">class</th>
                         <th class="text-capitalize">stream</th>
                         <th class="text-capitalize">subject</th>
+                        <th class="text-capitalize">term</th>
+                        <th class="text-capitalize">year</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -79,11 +81,13 @@ if(isset($_SESSION['success'])){
                     <?php
                         $select = "SELECT teacher_subject_assignments.*,
                         users.fullname AS fullname,
+                        terms.term_name AS termname,
                         classes.class_name AS classname,
                         streams.stream_name AS streamname,
                         subjects.subject_name AS subjectname
                         FROM teacher_subject_assignments
                         JOIN users ON users.user_id=teacher_subject_assignments.teacher_id
+                        JOIN terms ON terms.term_id = teacher_subject_assignments.term_id
                         JOIN classes ON classes.id=teacher_subject_assignments.class_id
                         JOIN streams ON streams.id=teacher_subject_assignments.stream_id
                         JOIN subjects ON subjects.subject_id=teacher_subject_assignments.subject_id
@@ -98,6 +102,8 @@ if(isset($_SESSION['success'])){
                                 $classes = $fetchInitials['classname'];
                                 $streams = $fetchInitials['streamname'];
                                 $subjects = $fetchInitials['subjectname'];
+                                $term = $fetchInitials['termname'];
+                                $year = $fetchInitials['academic_year'];
                                 ?>
                                     <tr>
                                         <td><?php echo $sn++ ?></td>
@@ -106,6 +112,8 @@ if(isset($_SESSION['success'])){
                                         <td class="text-capitalize"><?php echo $classes?></td>
                                         <td class="text-capitalize"><?php echo $streams ?></td>
                                         <td class="text-capitalize"><?php echo $subjects ?></td>
+                                        <td class="text-capitalize"><?php echo $term ?></td>
+                                        <td class="text-capitalize"><?php echo $year ?></td>
                                         <td>
                                             <a href="<?php echo SITEURL ?>update_teacherSubject.php?id=<?php echo $assign_id ?>" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
                                             <a href="<?php echo SITEURL ?>delete_teacherSubject.php?id=<?php echo $assign_id ?>" class="btn btn-danger"><i class="fa-solid fa-trash"></i></a>
