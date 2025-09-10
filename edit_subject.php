@@ -8,7 +8,7 @@
 <!-- update table -->
 <?php 
     if(isset($_POST['updatesubject'])){
-        $subject = strtolower(trim(mysqli_real_escape_string($conn, $_POST['subject'])));
+        $subject = strtoupper(trim(mysqli_real_escape_string($conn, $_POST['subject'])));
         $onlystrng = preg_match('/^[a-zA-Z0-9 ]+$/', $subject);
         //check whether data exist
         $selectTocheck = "SELECT * FROM subjects WHERE subject_name='$subject' AND subject_id != $subject_id";

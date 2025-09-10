@@ -84,7 +84,7 @@ $students_res = mysqli_query($conn, $student_sql);
 
 <div class="container my-4">
     <h3 class="text-capitalize fs-6 text-dark mb-3">
-        <?php echo $_SESSION['role']==='admin' ? "Enter Head Teacher Comments (Batch)" : "Enter Class Teacher Comments (Batch)"; ?>
+        <?php echo $_SESSION['role']==='admin' ? "Enter Head Teacher Comments (Batch)" : "Enter Class Teacher Comments "; ?>
     </h3>
 
     <?php if (!empty($errors)): ?>
@@ -131,7 +131,7 @@ $students_res = mysqli_query($conn, $student_sql);
                         }
                     }
 
-                    $final_avg = $subject_count > 0 ? round($total_avg / $subject_count, 2) : 0.00;
+                    $final_avg = $subject_count > 0 ? round($total_avg / $subject_count, 0) : 0.00;
 
                     // Fetch existing comment (any exam in the term)
                     $comment_sql = "

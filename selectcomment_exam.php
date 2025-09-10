@@ -18,13 +18,14 @@ if(!$class_id){
 }
 
 // ---------------- Fetch terms for this class ----------------
-// Group by term_id & academic_year to avoid duplicates
+// Join terms table to get term_name
 $term_res = mysqli_query($conn, "
-    SELECT term_id, academic_year 
-    FROM exams 
-    WHERE class_id = $class_id
-    GROUP BY term_id, academic_year
-    ORDER BY academic_year DESC, term_id ASC
+    SELECT exams.term_id, exams.academic_year, terms.term_name
+    FROM exams
+    JOIN terms ON exams.term_id = terms.term_id
+    WHERE exams.class_id = $class_id
+    GROUP BY exams.term_id, exams.academic_year
+    ORDER BY exams.academic_year DESC, exams.term_id ASC
 ");
 
 // ---------------- Handle term selection ----------------
@@ -44,7 +45,7 @@ if(isset($_POST['select_term'])){
                 <option value="" disabled selected>Select Term</option>
                 <?php while($term = mysqli_fetch_assoc($term_res)): ?>
                     <option value="<?php echo $term['term_id']; ?>" data-year="<?php echo $term['academic_year']; ?>">
-                        Term <?php echo $term['term_id']; ?> <?php echo $term['academic_year']; ?>
+                        <?php echo htmlspecialchars($term['term_name']); ?> <?php echo $term['academic_year']; ?>
                     </option>
                 <?php endwhile; ?>
             </select>

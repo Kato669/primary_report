@@ -13,7 +13,7 @@ if(!$execute_profile){
     die("Failed execution". mysqli_error($conn));
 }
 $row_profile = mysqli_fetch_assoc($execute_profile);
-$school_profile = $row_profile['school_name'];
+$school_profile = strtoupper($row_profile['school_name']);
 $location = $row_profile['address'];
 $contact_1 = $row_profile['phone_1'];
 $contact_2 = $row_profile['phone_2'];
@@ -411,8 +411,8 @@ foreach($students_stream as $sid => $stu){
                     htmlspecialchars("Tel: $school_tel") . "<br>" . 
                     htmlspecialchars("Email: $school_email"); 
               ?>
-              <div class="text-uppercase"><?php echo htmlspecialchars($school_motto) ?></div>
-              <div class="mt-2 fw-bold"><?php echo htmlspecialchars("END OF $term_name $sel_year REPORT") ?></div>
+              <div class="text-uppercase text-danger"><?php echo htmlspecialchars($school_motto) ?></div>
+              <div class="mt-2 fw-bold text-danger"><?php echo htmlspecialchars("END OF $term_name $sel_year REPORT") ?></div>
             </div>
             <div class="col-lg-3 col-3 text-center text-lg-end">
               <img style="width: 100px; height:auto" src="<?php echo $student_img?>" alt="student" class="student-photo" onerror="this.src='img/stdent_image/default.png'">
@@ -497,10 +497,10 @@ foreach($students_stream as $sid => $stu){
                 <tr>
                   <td><?php echo htmlspecialchars($sub['subject_name']) ?></td>
                   <?php foreach($cells as $c): ?><td><?php echo $c; ?></td><?php endforeach; ?>
-                  <td><?php echo ($avg === ''? '': htmlspecialchars($avg)); ?></td>
-                  <td><?php echo htmlspecialchars($grade); ?></td>
-                  <td><?php echo htmlspecialchars($ginfo['comment']); ?></td>
-                  <td><?php echo htmlspecialchars($initials_map[$sub_id] ?? ''); ?></td>
+                  <td class="fw-bold"><?php echo ($avg === ''? '': htmlspecialchars($avg)); ?></td>
+                  <td class="fw-bold"><?php echo htmlspecialchars($grade); ?></td>
+                  <td class="fw-bold"><?php echo htmlspecialchars($ginfo['comment']); ?></td>
+                  <td class="fw-bold"><?php echo htmlspecialchars($initials_map[$sub_id] ?? ''); ?></td>
                 </tr>
               <?php endforeach; ?>
 

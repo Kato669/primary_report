@@ -34,7 +34,14 @@
           <div class="col-lg-3 d-flex align-items-center gap-3 top-left">
             <i class="fa-solid fa-bars icon-bar" id="icon"></i>
             <h3 class="text-capitalize name mb-0" id="name">
-              Kato Primary School
+              <!-- selecting class name from school -->
+              <?php 
+                $school_profile = "SELECT * FROM school_profile";
+                $execute = mysqli_query($conn, $school_profile);
+                $row = mysqli_fetch_assoc($execute);
+                $school_name = $row['school_name'];
+              ?>
+              <?php echo $school_name ?> P/S
             </h3>
           </div>
           <div class="col-lg-9 d-flex justify-content-end gap-4 top-right">

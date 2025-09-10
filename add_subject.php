@@ -3,7 +3,7 @@
     include("partials/header.php");
     include("partials/adminOnly.php");
     if(isset($_POST['addsubject'])){
-        $subject = strtolower(trim(mysqli_real_escape_string($conn, $_POST['subject'] ?? "")));
+        $subject = strtoupper(trim(mysqli_real_escape_string($conn, $_POST['subject'] ?? "")));
         $onlyString = preg_match('/^[a-zA-Z0-9
         ]+$/', $subject);
         if(!empty($subject) && $onlyString){
