@@ -1,68 +1,54 @@
-<?php ob_start();
-    include("partials/header.php");
-    include("partials/adminOnly.php"); ?>
 <?php
+ob_start();
+include("partials/header.php");
+include("partials/adminOnly.php");
+?>
+
+<?php
+// Toastr notifications
 if(isset($_SESSION['teacher_subject_deleted'])){
-    echo '
-    <script type="text/javascript">
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": false,
-        "progressBar": false,
-        "positionClass": "toast-top-right",
-        "preventDuplicates": false,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "3000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"}
-        Command: toastr["success"]("'.$_SESSION['teacher_subject_deleted'].'");
-    </script>
-    ';
+    echo "
+    <script type='text/javascript'>
+        toastr.options = {
+            closeButton: true,
+            positionClass: 'toast-top-right',
+            showDuration: '300',
+            hideDuration: '1000',
+            timeOut: '3000'
+        };
+        Command: toastr['success']('{$_SESSION['teacher_subject_deleted']}');
+    </script>";
     unset($_SESSION['teacher_subject_deleted']);
 }
+
 if(isset($_SESSION['success'])){
-    echo '
-    <script type="text/javascript">
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": false,
-        "progressBar": false,
-        "positionClass": "toast-top-right",
-        "preventDuplicates": false,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "3000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"}
-        Command: toastr["success"]("'.$_SESSION['success'].'");
-    </script>
-    ';
+    echo "
+    <script type='text/javascript'>
+        toastr.options = {
+            closeButton: true,
+            positionClass: 'toast-top-right',
+            showDuration: '300',
+            hideDuration: '1000',
+            timeOut: '3000'
+        };
+        Command: toastr['success']('{$_SESSION['success']}');
+    </script>";
     unset($_SESSION['success']);
 }
 ?>
+
 <div class="container-fluid">
-    <!-- button to add class -->
     <div class="row g-0 my-2">
         <div class="col-lg-4 col-md-4 col-sm-12">
-            <a href="<?php echo SITEURL ?>addteachersub.php" class="btn text-capitalize text-white btn-success fs-6">
-                assign subject
-                <i class="fa-solid fa-pen-to-square"></i>
+            <a href="<?php echo SITEURL ?>addteachersub.php" class="btn btn-success text-white fs-6 text-capitalize">
+                assign subject <i class="fa-solid fa-pen-to-square"></i>
             </a>
         </div>
-        <h3 class="text-capitalize fs-6 text-dark py-2">view teachers</h3>
-        <div class="col-lg-12">
-            <table id="example" class="display">
+        <div class="col-12 mt-2">
+            <h3 class="fs-6 text-dark text-capitalize">view teachers</h3>
+        </div>
+        <div class="col-12 mt-2">
+            <table id="example" class="table table-hover display" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>Sn</th>
@@ -73,60 +59,64 @@ if(isset($_SESSION['success'])){
                         <th class="text-capitalize">subject</th>
                         <th class="text-capitalize">term</th>
                         <th class="text-capitalize">year</th>
-                        <th>Action</th>
+                        <th class="text-capitalize">action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- select from teacher_subject_assignments -->
                     <?php
-                        $select = "SELECT teacher_subject_assignments.*,
-                        users.fullname AS fullname,
-                        terms.term_name AS termname,
-                        classes.class_name AS classname,
-                        streams.stream_name AS streamname,
-                        subjects.subject_name AS subjectname
-                        FROM teacher_subject_assignments
-                        JOIN users ON users.user_id=teacher_subject_assignments.teacher_id
-                        JOIN terms ON terms.term_id = teacher_subject_assignments.term_id
-                        JOIN classes ON classes.id=teacher_subject_assignments.class_id
-                        JOIN streams ON streams.id=teacher_subject_assignments.stream_id
-                        JOIN subjects ON subjects.subject_id=teacher_subject_assignments.subject_id
-                        ";
-                        $execute = mysqli_query($conn, $select);
-                        if($execute && mysqli_num_rows($execute)){
-                            $sn=1;
-                            while($fetchInitials = mysqli_fetch_assoc($execute)){
-                                $assign_id = $fetchInitials['id'];
-                                $fullname = $fetchInitials['fullname'];
-                                $initials = $fetchInitials['initials'];
-                                $classes = $fetchInitials['classname'];
-                                $streams = $fetchInitials['streamname'];
-                                $subjects = $fetchInitials['subjectname'];
-                                $term = $fetchInitials['termname'];
-                                $year = $fetchInitials['academic_year'];
-                                ?>
-                                    <tr>
-                                        <td><?php echo $sn++ ?></td>
-                                        <td class="text-capitalize"><?php echo $fullname ?></td>
-                                        <td class="text-capitalize"><?php echo $initials ?></td>
-                                        <td class="text-capitalize"><?php echo $classes?></td>
-                                        <td class="text-capitalize"><?php echo $streams ?></td>
-                                        <td class="text-capitalize"><?php echo $subjects ?></td>
-                                        <td class="text-capitalize"><?php echo $term ?></td>
-                                        <td class="text-capitalize"><?php echo $year ?></td>
-                                        <td>
-                                            <a href="<?php echo SITEURL ?>update_teacherSubject.php?id=<?php echo $assign_id ?>" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
-                                            <a href="<?php echo SITEURL ?>delete_teacherSubject.php?id=<?php echo $assign_id ?>" class="btn btn-danger"><i class="fa-solid fa-trash"></i></a>
-                                        </td>
-                                    </tr>
-                                <?php
-                            }
+                    $select = "
+                        SELECT tsa.*, u.fullname, t.term_name AS termname, 
+                               c.class_name AS classname, s.stream_name AS streamname, 
+                               sub.subject_name AS subjectname
+                        FROM teacher_subject_assignments tsa
+                        JOIN users u ON u.user_id = tsa.teacher_id
+                        JOIN terms t ON t.term_id = tsa.term_id
+                        JOIN classes c ON c.id = tsa.class_id
+                        JOIN streams s ON s.id = tsa.stream_id
+                        JOIN subjects sub ON sub.subject_id = tsa.subject_id
+                        ORDER BY u.fullname, c.class_name, s.stream_name
+                    ";
+                    $execute = mysqli_query($conn, $select);
+                    if($execute && mysqli_num_rows($execute) > 0){
+                        $sn = 1;
+                        while($row = mysqli_fetch_assoc($execute)){
+                            $assign_id = $row['id'];
+                            $fullname = $row['fullname'];
+                            $initials = $row['initials'];
+                            $class = $row['classname'];
+                            $stream = $row['streamname'];
+                            $subject = $row['subjectname'];
+                            $term = $row['termname'];
+                            $year = $row['academic_year'];
+                            ?>
+                            <tr>
+                                <td><?php echo $sn++; ?></td>
+                                <td class="text-capitalize"><?php echo htmlspecialchars($fullname); ?></td>
+                                <td class="text-capitalize"><?php echo htmlspecialchars($initials); ?></td>
+                                <td class="text-capitalize"><?php echo htmlspecialchars($class); ?></td>
+                                <td class="text-capitalize"><?php echo htmlspecialchars($stream); ?></td>
+                                <td class="text-capitalize"><?php echo htmlspecialchars($subject); ?></td>
+                                <td class="text-capitalize"><?php echo htmlspecialchars($term); ?></td>
+                                <td class="text-capitalize"><?php echo htmlspecialchars($year); ?></td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="<?php echo SITEURL ?>update_teacherSubject.php?id=<?php echo $assign_id ?>" class="btn btn-primary btn-sm">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <a href="<?php echo SITEURL ?>delete_teacherSubject.php?id=<?php echo $assign_id ?>" class="btn btn-danger btn-sm">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php
                         }
+                    }
                     ?>
-                    
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-<?php include("partials/footer.php") ?>
+
+<?php include("partials/footer.php"); ?>
