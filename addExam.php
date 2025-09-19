@@ -2,7 +2,7 @@
 // ob_start();
     ob_start();
     include("partials/header.php");
-    include("partials/adminOnly.php");
+    // include("partials/adminOnly.php");
 
 $errors = [];
 $success = [];
@@ -50,6 +50,10 @@ if (isset($_POST['addExam'])) {
         }
     }
 }
+
+$role = $_SESSION['role'] ?? '';
+$class_id = $_SESSION['class_id'] ?? null;
+$stream_id = $_SESSION['stream_id'] ?? null;
 ?>
 
 <div class="container-fluid my-3">
@@ -88,23 +92,40 @@ if (isset($_POST['addExam'])) {
                 <div class="mb-3">
                     <label class="form-label fw-bold d-flex justify-content-between align-items-center">
                         Classes 
-                        <button type="button" id="addClass" class="btn btn-sm btn-outline-primary">+</button>
+                        <?php if ($role === 'admin'): ?>
+                            <button type="button" id="addClass" class="btn btn-sm btn-outline-primary">+</button>
+                        <?php endif; ?>
                     </label>
                     <div id="classWrapper">
-                        <div class="d-flex align-items-center class-select mb-2">
-                            <select class="form-select me-2" name="class[]">
-                                <option disabled selected>Choose class</option>
+                        <?php if ($role === 'admin'): ?>
+                            <div class="d-flex align-items-center class-select mb-2">
+                                <select class="form-select me-2" name="class[]">
+                                    <option disabled selected>Choose class</option>
+                                    <?php 
+                                    $classes = mysqli_query($conn, "SELECT * FROM classes");
+                                    while ($row = mysqli_fetch_assoc($classes)) {
+                                        echo "<option class='shadow-none' value='{$row['id']}'>{$row['class_name']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                                <button type="button" class="btn btn-sm btn-outline-danger removeClass">-</button>
+                            </div>
+                        <?php elseif ($role === 'class_teacher' && $class_id): ?>
+                            <input type="hidden" name="class[]" value="<?php echo $class_id; ?>">
+                            <select class="form-select me-2" disabled>
                                 <?php 
-                                $classes = mysqli_query($conn, "SELECT * FROM classes");
-                                while ($row = mysqli_fetch_assoc($classes)) {
-                                    echo "<option class='shadow-none' value='{$row['id']}'>{$row['class_name']}</option>";
-                                }
+                                $class = mysqli_query($conn, "SELECT * FROM classes WHERE id=$class_id");
+                                $row = mysqli_fetch_assoc($class);
+                                echo "<option selected>{$row['class_name']}</option>";
                                 ?>
                             </select>
-                            <button type="button" class="btn btn-sm btn-outline-danger removeClass">-</button>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
+
+                <?php if ($role === 'class_teacher' && $stream_id): ?>
+                    <input type="hidden" name="stream_id" value="<?php echo $stream_id; ?>">
+                <?php endif; ?>
 
                 <div class="mb-3">
                     <label for="year" class="form-label fw-bold">Academic Year</label>
@@ -119,6 +140,7 @@ if (isset($_POST['addExam'])) {
 </div>
 
 <script>
+<?php if ($role === 'admin'): ?>
 const wrapper = document.getElementById('classWrapper');
 const addBtn = document.getElementById('addClass');
 
@@ -139,6 +161,7 @@ wrapper.addEventListener('click', function(e) {
         }
     }
 });
+<?php endif; ?>
 </script>
 
 <?php include("partials/footer.php"); ?>

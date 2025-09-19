@@ -313,7 +313,7 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
     background:#fff; 
     position:relative; 
     width: 90%;
-    margin: 50px auto 10px;
+    /* margin: 50px auto 10px; */
   }
   .report-watermark{ 
     position:absolute; 
@@ -371,18 +371,54 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
     font-weight: 700;
   }
   @media print {
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: #fff !important;
+    }
+    /* Hide everything except #reportCardsContainer and its children */
     body * {
-        visibility: hidden; /* hide everything */
+        visibility: hidden !important;
+    }
+    #reportCardsContainer, #reportCardsContainer * {
+        visibility: visible !important;
+    }
+    #reportCardsContainer {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100vw !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
     }
     .report-card {
-        visibility: visible; /* show report cards */
-        position: relative; /* allow stacking vertically */
-        width: 100%;
-        page-break-after: always; /* ensure each card prints on separate page */
+        width: 100% !important;
+        height: 100vh !important;      /* Fill 90% of printable area */
+        margin: 0 !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+        background: #fff !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: stretch !important;
     }
-    .report-card * { visibility: visible; }
-    .btn { display: none; } /* hide buttons on print */
-
+    .page-break {
+        display: none !important;
+    }
+    .student-photo {
+        margin: 0 10px !important;
+        border: 1px solid #ccc !important;
+        background: #fff !important;
+    }
+    .col-lg-2, .col-2 {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
 }
 
 /* button starts */
@@ -391,13 +427,21 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
     <!-- <button class="btn btn-primary" onclick="window.print()">
         <i class="fa fa-print"></i> Print All
     </button> -->
-    <button class="btn btn-success" id="downloadPdf">
+    <!-- <button class="btn btn-success" id="downloadPdf">
         <i class="fa fa-file-pdf"></i> Download PDF
+    </button> -->
+    <button class="btn btn-primary" id="printReports">
+        <i class="fa fa-print"></i> Print All
     </button>
 </div>
 <!-- button ends -->
 <div id="reportCardsContainer">
 <?php
+if (empty($students_stream)) {
+    echo "<div style='text-align:center; padding:60px; font-size:1.3rem; color:#b00;'>
+            <strong>No student reports found for the selected class, stream, term, or year.</strong>
+          </div>";
+}
 foreach($students_stream as $sid => $stu){
     $student_name = $stu['first_name'].' '.$stu['last_name'];
     $student_img = !empty($stu['image']) ? "img/stdent_image/".htmlspecialchars($stu['image']) : "img/stdent_image/default.png";
@@ -410,12 +454,12 @@ foreach($students_stream as $sid => $stu){
 
     <div class="report-card">
       <div class="report-watermark"></div>
-        <div class="container">
+        <div class="container-fluid">
           <div class="row align-items-center" style="font-weight:700;">
-            <div class="col-lg-3 col-3 text-center text-lg-start">
-              <img src="<?php echo $logo ?>" style="width:100px; height:auto;" alt="logo">
+            <div class="col-lg-2 col-2 text-center text-lg-start">
+              <img src="<?php echo $logo ?>" style="width:150px; height :auto" alt="logo">
             </div>
-            <div class="col-lg-6 col-6 text-center">
+            <div class="col-lg-8 col-8 text-center">
               <div class="fw-bold fs-6"><?php echo ("<span style='font-size: 1.4rem'>$school_name</span>") ?></div>
               <?php echo htmlspecialchars($school_address) . "<br>" . 
                     htmlspecialchars("Tel: $school_tel") . "<br>" . 
@@ -424,8 +468,8 @@ foreach($students_stream as $sid => $stu){
               <div class="text-uppercase text-danger"><?php echo htmlspecialchars($school_motto) ?></div>
               <div class="mt-2 fw-bold text-danger"><?php echo htmlspecialchars("END OF $term_name $sel_year REPORT") ?></div>
             </div>
-            <div class="col-lg-3 col-3 text-center text-lg-end">
-              <img style="width: 100px; height:auto" src="<?php echo $student_img?>" alt="student" class="student-photo" onerror="this.src='img/stdent_image/default.png'">
+            <div class="col-lg-2 col-2 text-center">
+              <img style="width: 100px; height :auto" src="<?php echo $student_img?>" alt="student" class="student-photo" onerror="this.src='img/stdent_image/default.png'">
             </div>
           </div>
         </div>
@@ -620,16 +664,50 @@ foreach($students_stream as $sid => $stu){
 </div>
 
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-document.getElementById("downloadPdf").addEventListener("click", function () {
-    const element = document.getElementById("reportCardsContainer");
-    html2pdf()
-        .set({margin:0.3, filename:'Class_Report.pdf', html2canvas:{scale:2}})
-        .from(element)
-        .save();
+document.getElementById("printReports").addEventListener("click", function () {
+    window.print();
 });
 
+// jsPDF download (handles large content better)
+document.getElementById("downloadPdf").addEventListener("click", async function () {
+    const element = document.getElementById("reportCardsContainer");
+    // Wait for all images to load
+    const images = element.querySelectorAll("img");
+    let loaded = 0;
+    if (images.length === 0) await generatePDF();
+    images.forEach(img => {
+        if (img.complete) loaded++;
+        else img.addEventListener('load', () => {
+            loaded++;
+            if (loaded === images.length) generatePDF();
+        });
+        img.addEventListener('error', () => {
+            loaded++;
+            if (loaded === images.length) generatePDF();
+        });
+    });
+    if (loaded === images.length) await generatePDF();
+
+    async function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const cards = element.querySelectorAll('.report-card');
+        let y = 0;
+        for (let i = 0; i < cards.length; i++) {
+            const canvas = await html2canvas(cards[i], { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            if (i > 0) pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        }
+        pdf.save('Class_Report.pdf');
+    }
+});
 </script>
 
 <?php include("partials/footer.php"); ?>

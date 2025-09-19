@@ -109,7 +109,7 @@ $stmt->close();
             <tr>
                 <td><?php echo $sn++; ?></td>
                 <td><?php echo htmlspecialchars($student['name']); ?></td>
-                <td><?php echo htmlspecialchars($mark['exam_name']); ?></td>
+                <td><?php echo htmlspecialchars(strtoupper($mark['exam_name'])); ?></td>
                 <td><?php echo htmlspecialchars($mark['term_name']); ?></td>
                 <td><?php echo htmlspecialchars($mark['subject_name']); ?></td>
                 <td><?php echo htmlspecialchars($mark['score']); ?></td>

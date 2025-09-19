@@ -127,6 +127,7 @@ if (isset($_POST['login'])) {
         <input 
           class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" 
           type="text" 
+          autocomplete="off"
           name="username"
           placeholder="Username" 
           aria-label="Username">
