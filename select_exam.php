@@ -14,13 +14,16 @@ $class_teacher_class_id = $_SESSION['class_id'] ?? null;
 // Handle form submission
 if (isset($_POST['select_exam'])) {
     $exam_id = intval($_POST['exam_id'] ?? 0);
+    $class_id = intval($_POST['class_id'] ?? 0); // store selected class
 
-    if ($exam_id > 0) {
-        $_SESSION['exam_id'] = $exam_id;
+    if ($exam_id > 0 && $class_id > 0) {
+        $_SESSION['exam_id']  = $exam_id;
+        $_SESSION['class_id'] = $class_id; // store class in session
+
         header("Location: addScore.php");
         exit;
     } else {
-        $errors[] = "Please select a valid exam.";
+        $errors[] = "Please select a valid exam and class.";
     }
 }
 
@@ -54,6 +57,10 @@ while ($t = mysqli_fetch_assoc($term_res)) {
         <?php else: ?>
             <!-- Hidden input for class_teacher's class -->
             <input type="hidden" name="class_id" id="classSelect" value="<?= htmlspecialchars($class_teacher_class_id); ?>">
+        <?php endif; ?>
+
+        <!-- Term dropdown (for class_teacher) -->
+        <?php if ($is_class_teacher): ?>
             <div class="mb-3">
                 <label class="form-label fw-bold">Term</label>
                 <select name="term_id" id="termSelect" class="form-select shadow-none" required>
