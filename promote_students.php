@@ -5,9 +5,20 @@ include("partials/header.php");
 $role = $_SESSION['role'] ?? '';
 $teacher_class_id = $_SESSION['class_id'] ?? null;
 
-// Only allow admin or class_teacher
-if (!in_array($role, ['admin', 'class_teacher'])) {
-    echo "<div class='alert alert-danger'>You do not have permission to access this page.</div>";
+// Get the highest class id (last class)
+$last_class_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM classes ORDER BY id DESC LIMIT 1"));
+$last_class_id = $last_class_row['id'];
+
+// For class_teacher
+if ($role === 'class_teacher' && $teacher_class_id == $last_class_id) {
+    echo "<div class='alert alert-info'>This is the final class. Students cannot be promoted further.</div>";
+    include("partials/footer.php");
+    exit;
+}
+
+// For admin
+if ($role === 'admin' && isset($_GET['class_id']) && $_GET['class_id'] == $last_class_id) {
+    echo "<div class='alert alert-info'>This is the final class. Students cannot be promoted further.</div>";
     include("partials/footer.php");
     exit;
 }
