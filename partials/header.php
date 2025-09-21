@@ -55,6 +55,8 @@
                   <li><a class="dropdown-item" href="<?php echo SITEURL ?>update_profile.php">School Profile</a></li>
                   <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item" href="<?php echo SITEURL ?>fees.php">Fees Structure</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="<?php echo SITEURL ?>promote_students.php">Promote</a></li>
                   
                   <!-- <li><a class="dropdown-item" href="#">Something else here</a></li> -->
                 </ul>
@@ -161,6 +163,12 @@
             <i class="fa-solid fa-bookmark"></i>
             <span class="text-capitalize side-text">report cards</span>
           </a>
+          <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'class_teacher'): ?>
+            <a href="<?php echo SITEURL ?>promote_students.php" class="<?php echo isActive('promote_students.php'); ?>">
+              <i class="fa-solid fa-arrow-up"></i>
+              <span class="text-capitalize side-text">Promote students</span>
+            </a>
+          <?php endif ?>
           
         </div>
 
