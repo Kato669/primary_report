@@ -49,10 +49,15 @@ $stream_id = isset($_SESSION['stream_id']) ? intval($_SESSION['stream_id']) : nu
 /* ---------------- Fetch Students ---------------- */
 $students = [];
 if ($class_id && $stream_id) {
-    $student_sql = "SELECT student_id, first_name, last_name 
-                    FROM students 
-                    WHERE class_id = $class_id AND stream_id = $stream_id
-                    ORDER BY first_name, last_name";
+    $student_sql = "SELECT 
+    student_id, 
+    first_name, 
+    last_name 
+FROM students 
+WHERE class_id = $class_id 
+  AND stream_id = $stream_id 
+  AND level = 'active'
+ORDER BY first_name, last_name";
     $students_res = mysqli_query($conn, $student_sql);
     if ($students_res) {
         $students = mysqli_fetch_all($students_res, MYSQLI_ASSOC);

@@ -163,12 +163,18 @@
             <i class="fa-solid fa-bookmark"></i>
             <span class="text-capitalize side-text">report cards</span>
           </a>
+          <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+            <a onclick="return confirm('Do you want to graduate P.7 students?')" href="<?php echo SITEURL ?>graduate_students.php" class="<?php echo isActive('graduate_students.php'); ?>">
+              <i class="fa-solid fa-user-graduate"></i>
+              <span class="text-capitalize side-text">Graduate Students</span>
+            </a>
+          <?php endif ?>
           <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'class_teacher'): ?>
             <a href="<?php echo SITEURL ?>promote_students.php" class="<?php echo isActive('promote_students.php'); ?>">
               <i class="fa-solid fa-arrow-up"></i>
               <span class="text-capitalize side-text">Promote students</span>
             </a>
-          <?php endif ?>
+          <?php endif; ?>
           
         </div>
 

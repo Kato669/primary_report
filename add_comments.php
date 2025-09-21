@@ -73,10 +73,17 @@ if (isset($_POST['save_comment'])) {
 
 // ---------------- Fetch Students & Compute Averages ----------------
 $student_sql = "
-    SELECT s.student_id, s.first_name, s.last_name, s.gender
-    FROM students s
-    WHERE s.class_id=$class_id AND s.stream_id=$stream_id
-    ORDER BY s.first_name, s.last_name
+    SELECT 
+    s.student_id, 
+    s.first_name, 
+    s.last_name, 
+    s.gender
+FROM students s
+WHERE s.class_id = $class_id
+  AND s.stream_id = $stream_id
+  AND s.level = 'active'
+ORDER BY s.first_name, s.last_name
+
 ";
 
 $students_res = mysqli_query($conn, $student_sql);

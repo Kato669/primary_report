@@ -160,14 +160,29 @@ $subject_ids = array_column($subjects,'subject_id');
 
 /* ---------------- Fetch students (stream) and class students ---------------- */
 $students_stream = [];
-$res = mysqli_query($conn, "SELECT DISTINCT s.student_id, s.first_name, s.last_name, s.gender, s.image, COALESCE(s.lin,'') AS lin
-FROM marks m
-JOIN students s ON m.student_id = s.student_id
-WHERE m.exam_id IN (
-    SELECT exam_id FROM exams WHERE class_id = $sel_class AND term_id = $sel_term AND academic_year = '$sel_year'
-)
-AND s.stream_id = $sel_stream
-ORDER BY s.first_name, s.last_name");
+$res = mysqli_query($conn, "
+    SELECT DISTINCT 
+        s.student_id, 
+        s.first_name, 
+        s.last_name, 
+        s.gender, 
+        s.image, 
+        COALESCE(s.lin,'') AS lin
+    FROM marks m
+    JOIN students s ON m.student_id = s.student_id
+    WHERE m.exam_id IN (
+        SELECT exam_id 
+        FROM exams 
+        WHERE class_id = $sel_class 
+          AND term_id = $sel_term 
+          AND academic_year = '$sel_year'
+    )
+    AND s.stream_id = $sel_stream
+    AND s.class_id = $sel_class
+    AND s.level = 'active'
+    ORDER BY s.first_name, s.last_name
+");
+
 if (!$res) { die("Students stream query failed: ".mysqli_error($conn)); }
 while($r = mysqli_fetch_assoc($res)) $students_stream[$r['student_id']] = $r;
 

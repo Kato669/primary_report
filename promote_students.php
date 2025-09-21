@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['promote_students'])) 
                         SELECT students.*, streams.stream_name AS streamName
                         FROM students
                         JOIN streams ON streams.id = students.stream_id
-                        WHERE students.class_id = ?
+                        WHERE students.class_id = ? AND students.level = 'active'
                     ";
                     $stmt = $conn->prepare($students_sql);
                     $stmt->bind_param("i", $teacher_class_id);
