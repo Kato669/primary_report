@@ -13,7 +13,7 @@ include("partials/header.php");
         </div>
     </div>
 
-    <h3 class="text-capitalize fs-6 text-dark py-2">view students</h3>
+    <h4 class="text-uppercase fw-bold text-center mb-3 bg-primary text-white py-2 rounded">STUDENTS OF <?php echo htmlspecialchars($school_name); ?> PRIMARY SCHOOL</h4>
 
     <!-- FILTERS -->
     <div class="row mb-3">
@@ -21,7 +21,7 @@ include("partials/header.php");
             <select id="classSelect" class="form-select">
                 <option value="">-- Select Class --</option>
                 <?php
-                $classQuery = mysqli_query($conn, "SELECT id, class_name FROM classes ORDER BY class_name");
+                $classQuery = mysqli_query($conn, "SELECT id, class_name FROM classes");
                 while ($class = mysqli_fetch_assoc($classQuery)) {
                     echo "<option value='{$class['id']}'>{$class['class_name']}</option>";
                 }
@@ -52,7 +52,7 @@ include("partials/header.php");
                     <th>Last Name</th>
                     <th>Gender</th>
                     <th>DOB</th>
-                    <th>Admission No.</th>
+                    <th>Reg No.</th>
                     <th>Class</th>
                     <th>Stream</th>
                     <th>Image</th>
@@ -90,7 +90,7 @@ include("partials/header.php");
                                 No Image
                             <?php endif; ?>
                         </td>
-                        <td><?= $row['status'] ?></td>
+                        <td class="text-uppercase"><?= $row['status'] ?></td>
                         <td class="d-flex gap-2">
                             <a href="<?= SITEURL ?>edit_stdnt.php?student_id=<?= $row['student_id'] ?>" class="btn btn-success btn-small">
                                 <i class="fa-solid fa-pencil"></i>

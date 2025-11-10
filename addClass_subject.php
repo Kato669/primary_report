@@ -86,22 +86,104 @@ if (isset($_POST['addClass'])) {
 document.addEventListener("DOMContentLoaded", function() {
     const container = document.getElementById("subjects-container");
 
+    // All subjects from PHP dropdown
+    const allSubjects = Array.from(
+        container.querySelector("select[name='subject[]']").options
+    )
+    .filter(opt => opt.value !== "" && opt.value !== "Choose subject")
+    .map(opt => ({ value: opt.value, text: opt.text }));
+
+    function getSelected() {
+        return Array.from(container.querySelectorAll("select[name='subject[]']"))
+            .map(sel => sel.value)
+            .filter(v => v !== "");
+    }
+
+    function createDropdown() {
+        const selected = getSelected();
+
+        const select = document.createElement("select");
+        select.name = "subject[]";
+        select.className = "form-select shadow-none mb-2";
+
+        // Default option
+        const def = document.createElement("option");
+        def.innerText = "Choose subject";
+        def.disabled = true;
+        def.selected = true;
+        select.appendChild(def);
+
+        // Add only unselected subjects
+        allSubjects.forEach(sub => {
+            if (!selected.includes(sub.value)) {
+                const opt = document.createElement("option");
+                opt.value = sub.value;
+                opt.textContent = sub.text;
+                select.appendChild(opt);
+            }
+        });
+
+        return select;
+    }
+
     container.addEventListener("click", function(e) {
+        // Add new row
         if (e.target.classList.contains("add-subject")) {
-            const firstRow = container.querySelector(".subject-row");
-            const newRow = firstRow.cloneNode(true);
-            newRow.querySelector("select").selectedIndex = 0; // reset dropdown
-            newRow.querySelector(".add-subject").textContent = "−";
-            newRow.querySelector(".add-subject").classList.remove("btn-success");
-            newRow.querySelector(".add-subject").classList.add("btn-danger", "remove-subject");
-            container.appendChild(newRow);
+
+            const row = document.createElement("div");
+            row.className = "d-flex mb-2 subject-row";
+
+            const select = createDropdown();
+            row.appendChild(select);
+
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn btn-danger ms-2 remove-subject";
+            btn.textContent = "−";
+
+            row.appendChild(btn);
+
+            container.appendChild(row);
         }
 
+        // Remove row
         if (e.target.classList.contains("remove-subject")) {
-            e.target.closest(".subject-row").remove();
+            e.target.parentElement.remove();
         }
     });
+
+    // Rebuild dropdowns when user selects something
+    container.addEventListener("change", function(e) {
+        if (e.target.name === "subject[]") {
+            const selects = container.querySelectorAll("select[name='subject[]']");
+            const selected = getSelected();
+
+            selects.forEach(sel => {
+                const current = sel.value;
+                sel.innerHTML = "";
+
+                // Default option
+                const def = document.createElement("option");
+                def.innerText = "Choose subject";
+                def.disabled = true;
+                if (current === "") def.selected = true;
+                sel.appendChild(def);
+
+                allSubjects.forEach(sub => {
+                    if (!selected.includes(sub.value) || sub.value === current) {
+                        const opt = document.createElement("option");
+                        opt.value = sub.value;
+                        opt.textContent = sub.text;
+                        if (current === sub.value) opt.selected = true;
+                        sel.appendChild(opt);
+                    }
+                });
+            });
+        }
+    });
+
 });
 </script>
+
 
 <?php include("partials/footer.php"); ?>

@@ -43,6 +43,13 @@ if (isset($_POST['addExam'])) {
             $res = mysqli_query($conn, $sql);
 
             if ($res) {
+                $exam_type = strtolower($exam);
+                mysqli_query($conn, "
+                INSERT INTO exam_visibility (class_id, exam_type, visible)
+                VALUES ($class_id, '$exam_type', 1)
+                ON DUPLICATE KEY UPDATE visible = visible;
+                ");
+
                 $success[] = "Added exam for class ID $class_id successfully.";
             } else {
                 $errors[] = "Failed to insert exam for class ID $class_id: " . mysqli_error($conn);

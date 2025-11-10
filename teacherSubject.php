@@ -41,11 +41,11 @@ if(isset($_SESSION['success'])){
     <div class="row g-0 my-2">
         <div class="col-lg-4 col-md-4 col-sm-12">
             <a href="<?php echo SITEURL ?>addteachersub.php" class="btn btn-success text-white fs-6 text-capitalize">
-                assign subject <i class="fa-solid fa-pen-to-square"></i>
+                Manage Staff Load <i class="fa-solid fa-pen-to-square"></i>
             </a>
         </div>
         <div class="col-12 mt-2">
-            <h3 class="fs-6 text-dark text-capitalize">view teachers</h3>
+            <h4 class="text-uppercase fw-bold text-center mb-3 bg-primary text-white py-2 rounded">STAFF LOAD AT <?php echo htmlspecialchars($school_name); ?> PRIMARY SCHOOL</h4>
         </div>
         <div class="col-12 mt-2">
             <table id="example" class="table table-hover display" style="width: 100%;">

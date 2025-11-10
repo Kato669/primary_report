@@ -114,7 +114,7 @@ if(isset($_POST['addteacher'])){
                     <select id="classSelect" class="form-select shadow-none" name="classes" required>
                         <option disabled selected>Choose class</option>
                         <?php
-                        $classes_res = mysqli_query($conn, "SELECT * FROM classes ORDER BY class_name");
+                        $classes_res = mysqli_query($conn, "SELECT * FROM classes");
                         while($cls = mysqli_fetch_assoc($classes_res)){
                             $selected = ($classes == $cls['id']) ? 'selected' : '';
                             echo "<option value='{$cls['id']}' {$selected}>{$cls['class_name']}</option>";

@@ -128,5 +128,11 @@
             </form>
         </div>
     </div>
+        <div class="text-center mt-4">
+        <a href="fees_management.php" class="btn btn-primary">
+        Manage Fees per Class
+        </a>
+</div>
+
 </div>
 <?php include("partials/footer.php") ?>

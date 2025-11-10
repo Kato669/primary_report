@@ -15,12 +15,21 @@ $stream_id = $_SESSION['stream_id'] ?? null;
 $term      = $_SESSION['term'] ?? null;
 $year      = $_SESSION['year'] ?? null;
 
-// Validate selection
-if (!$class_id || !$stream_id || !$term || !$year) {
-    echo '<div class="alert alert-danger">Class/Stream/Term/Year not selected.</div>';
-    include("partials/footer.php");
+// ---------------- Handle selection change (keep selections visible) ----------------
+if (isset($_POST['change_selection'])) {
+    // set session values and reload so the rest of the page uses them
+    $_SESSION['class_id']  = intval($_POST['class_id']);
+    $_SESSION['stream_id'] = intval($_POST['stream_id']);
+    $_SESSION['term']      = intval($_POST['term']);
+    $_SESSION['year']      = intval($_POST['year']);
+
+    header("Location: add_comments.php");
     exit;
 }
+
+// If any of the required selection is missing, show a compact selection form at the top
+// so the user can pick Class / Stream / Term / Year without leaving this page.
+// We'll render that form below and stop further processing if selections are still missing.
 
 // Determine comment column (class teacher vs head teacher)
 $comment_column = $_SESSION['role'] === 'admin' ? 'head_teacher_comment' : 'class_teacher_comment';
@@ -87,12 +96,114 @@ ORDER BY s.first_name, s.last_name
 ";
 
 $students_res = mysqli_query($conn, $student_sql);
+
+// ---------------- Define Dropdown Comments ----------------
+$class_teacher_comments = [
+    "Excellent performance and exemplary discipline — keep it up!",
+    "Hardworking and disciplined; continues to make steady progress.",
+    "Good effort and behavior; can achieve more with greater focus.",
+    "Average performance; needs to be more consistent and attentive.",
+    "Below average work; must improve concentration and discipline.",
+    "Poor results and irregular conduct; serious improvement is required."
+];
+
+$head_teacher_comments = [
+    "An outstanding performance — keep up this excellent standard.",
+    "Good work — continue striving for excellence.",
+    "A commendable achievement; consistent effort clearly shown.",
+    "Good performance — aim even higher next term.",
+    "A fair result; steady progress observed, more effort encouraged.",
+    "Satisfactory work though improvement is still needed.",
+    "Below average performance — more commitment required."
+];
 ?>
 
 <div class="container my-4">
     <h3 class="text-capitalize fs-6 text-dark mb-3">
         <?php echo $_SESSION['role']==='admin' ? "Enter Head Teacher Comments (Batch)" : "Enter Class Teacher Comments "; ?>
     </h3>
+
+    <?php
+    // Fetch classes and terms for the top selection panel
+    $classes_res = mysqli_query($conn, "SELECT id, class_name FROM classes");
+    $terms_res = mysqli_query($conn, "SELECT term_id, term_name FROM terms ORDER BY term_id");
+
+    // Preload streams for the currently selected class (if any)
+    $streams_res = null;
+    if ($class_id) {
+        $streams_res = mysqli_query($conn, "SELECT id, stream_name FROM streams WHERE class_id = $class_id ORDER BY stream_name");
+    }
+    ?>
+
+    <!-- Selection panel to keep Class / Stream / Term / Year visible & changeable -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="POST" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Class</label>
+                    <select name="class_id" id="topClassSelect" class="form-select" <?php echo $_SESSION['role']==='class_teacher' ? 'disabled' : ''; ?> required>
+                        <option value="" disabled <?php echo !$class_id ? 'selected' : ''; ?>>Select Class</option>
+                        <?php while ($c = mysqli_fetch_assoc($classes_res)): ?>
+                            <option value="<?php echo $c['id']; ?>" <?php echo ($class_id && $class_id == $c['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($c['class_name']); ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Stream</label>
+                    <select name="stream_id" id="topStreamSelect" class="form-select" required>
+                        <option value="" disabled <?php echo !$stream_id ? 'selected' : ''; ?>>Select Stream</option>
+                        <?php if ($streams_res): while($s = mysqli_fetch_assoc($streams_res)): ?>
+                            <option value="<?php echo $s['id']; ?>" <?php echo ($stream_id && $stream_id == $s['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($s['stream_name']); ?></option>
+                        <?php endwhile; endif; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Term</label>
+                    <select name="term" class="form-select" required>
+                        <option value="" disabled <?php echo !$term ? 'selected' : ''; ?>>Select Term</option>
+                        <?php while ($t = mysqli_fetch_assoc($terms_res)): ?>
+                            <option value="<?php echo $t['term_id']; ?>" <?php echo ($term && $term == $t['term_id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($t['term_name']); ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Year</label>
+                    <select name="year" class="form-select" required>
+                        <option value="" disabled <?php echo !$year ? 'selected' : ''; ?>>Select Year</option>
+                        <?php $currentYear = date("Y"); for ($y = $currentYear; $y >= ($currentYear - 5); $y--): ?>
+                            <option value="<?php echo $y; ?>" <?php echo ($year && $year == $y) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" name="change_selection" class="btn btn-secondary">SEARCH <i class="fa-solid fa-search"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Load streams dynamically when class is changed in the top panel
+        $(document).ready(function(){
+            $('#topClassSelect').change(function(){
+                var classID = $(this).val();
+                if (!classID) return;
+
+                $.get('get_streams.php', { class_id: classID })
+                    .done(function(data){
+                        $('#topStreamSelect').html(data);
+                    })
+                    .fail(function(xhr){
+                        console.error('Error loading streams:', xhr.responseText);
+                    });
+            });
+        });
+    </script>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger">
@@ -150,12 +261,23 @@ $students_res = mysqli_query($conn, $student_sql);
                     $existing_comment = ($comment_res && mysqli_num_rows($comment_res) > 0)
                         ? mysqli_fetch_assoc($comment_res)[$comment_column]
                         : '';
+
+                    // Determine which comment set to show
+                    $dropdown_comments = $_SESSION['role'] === 'admin' ? $head_teacher_comments : $class_teacher_comments;
                 ?>
                 <tr>
                     <td><?php echo htmlspecialchars($student['first_name'].' '.$student['last_name']); ?></td>
                     <td><input type="text" class="form-control" value="<?php echo $final_avg; ?>" disabled></td>
                     <td>
-                        <textarea name="comments[<?php echo $student_id; ?>]" class="form-control" rows="2"><?php echo htmlspecialchars($existing_comment); ?></textarea>
+                        <div class="input-group">
+                            <select class="form-select comment-select" onchange="updateComment(this)">
+                                <option value="">-- Select Comment --</option>
+                                <?php foreach($dropdown_comments as $comment): ?>
+                                    <option value="<?php echo htmlspecialchars($comment); ?>"><?php echo htmlspecialchars($comment); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <textarea name="comments[<?php echo $student_id; ?>]" class="form-control mt-2" rows="2"><?php echo htmlspecialchars($existing_comment); ?></textarea>
                     </td>
                 </tr>
                 <?php endwhile; ?>
@@ -165,5 +287,14 @@ $students_res = mysqli_query($conn, $student_sql);
         <button type="submit" name="save_comment" class="btn btn-primary text-capitalize">Save All Comments</button>
     </form>
 </div>
+
+<script>
+function updateComment(selectElem) {
+    const textarea = selectElem.closest('td').querySelector('textarea');
+    if (selectElem.value !== "") {
+        textarea.value = selectElem.value;
+    }
+}
+</script>
 
 <?php include("partials/footer.php"); ?>

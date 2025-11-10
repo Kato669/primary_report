@@ -61,7 +61,8 @@
                 <i class="fa-solid fa-pen-to-square"></i>
             </a>
         </div>
-        <h3 class="text-capitalize fs-6 text-dark py-2">view class subject</h3>
+        <div class="mt-4"></div>
+        <h4 class="text-uppercase fw-bold text-center mb-3 bg-primary text-white py-2 rounded">CLASS SUBJECTS AT <?php echo htmlspecialchars($school_name); ?> PRIMARY SCHOOL</h4>
         <div class="col-lg-12">
             <table id="example" class="display">
                 <thead>
@@ -78,22 +79,50 @@
                         // Ensure database connection is established
                         // include("partials/db_connect.php"); // Make sure this file sets $conn
 
-                        $sql = "SELECT class_subjects.*, classes.class_name AS className, subjects.subject_name AS subjectName FROM class_subjects JOIN classes ON classes.id = class_subjects.class_id JOIN subjects ON subjects.subject_id = class_subjects.subject_id ORDER BY id ASC";
+                        $sql = "SELECT 
+                                    c.id as class_id,
+                                    c.class_name AS full_class_name,
+                                    CASE c.class_name 
+                                        WHEN 'Primary One' THEN 'P.1'
+                                        WHEN 'Primary Two' THEN 'P.2'
+                                        WHEN 'Primary Three' THEN 'P.3'
+                                        WHEN 'Primary Four' THEN 'P.4'
+                                        WHEN 'Primary Five' THEN 'P.5'
+                                        WHEN 'Primary Six' THEN 'P.6'
+                                        WHEN 'Primary Seven' THEN 'P.7'
+                                        ELSE c.class_name
+                                    END AS className,
+                                    GROUP_CONCAT(s.subject_name ORDER BY s.subject_name ASC SEPARATOR ', ') AS subjects,
+                                    GROUP_CONCAT(cs.id ORDER BY s.subject_name ASC SEPARATOR ',') AS subject_ids
+                                FROM classes c
+                                LEFT JOIN class_subjects cs ON c.id = cs.class_id
+                                LEFT JOIN subjects s ON s.subject_id = cs.subject_id
+                                GROUP BY c.id, c.class_name
+                                ORDER BY FIELD(c.class_name, 
+                                    'Primary One', 
+                                    'Primary Two', 
+                                    'Primary Three', 
+                                    'Primary Four', 
+                                    'Primary Five', 
+                                    'Primary Six', 
+                                    'Primary Seven')";
                         $res = mysqli_query($conn, $sql);
                         if($res && mysqli_num_rows($res) > 0){
                             $sn=1;
                             while($row = mysqli_fetch_assoc($res)){
-                                $subject_class_id = $row['id'];
                                 $class_name = $row['className'];
-                                $subject_name = $row['subjectName'];
+                                $subjects = $row['subjects'] ? $row['subjects'] : 'No subjects assigned';
+                                $subject_ids = $row['subject_ids'];
                                 ?>
                                 <tr>
                                     <td><?php echo $sn++ ?></td>
                                     <td class="text-uppercase"><?php echo $class_name ?></td>
-                                    <td class="text-capitalize"><?php echo $subject_name ?></td>
+                                    <td class="text-capitalize"><?php echo $subjects ?></td>
                                     <td>
-                                        <a href="<?php echo SITEURL ?>edit_classSubjects.php?id=<?php echo $subject_class_id ?>" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
-                                        <a href="<?php echo SITEURL ?>delete_classSubject.php?id=<?php echo $subject_class_id ?>" class="btn btn-danger" onclick="return confirm('Do you want to delete?')"><i class="fa-solid fa-trash"></i></a>
+                                        <?php if($subject_ids) { ?>
+                                            <a href="<?php echo SITEURL ?>edit_classSubjects.php?class_id=<?php echo $row['class_id'] ?>" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
+                                            <a href="<?php echo SITEURL ?>delete_classSubject.php?class_id=<?php echo $row['class_id'] ?>" class="btn btn-danger" onclick="return confirm('Do you want to delete all subjects for this class?')"><i class="fa-solid fa-trash"></i></a>
+                                        <?php } ?>
                                     </td>
                                 </tr>
                                 <?php

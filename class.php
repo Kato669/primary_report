@@ -5,14 +5,14 @@
 ?>
 <div class="container-fluid">
     <!-- button to add class -->
-    <div class="row g-0 my-2">
+    <!-- <div class="row g-0 my-2">
         <div class="col-lg-4 col-md-4 col-sm-12">
-            <a href="<?php echo SITEURL ?>addClass.php" class="btn text-capitalize text-white btn-success fs-6">
+            <a href="addClass.php" class="btn text-capitalize text-white btn-success fs-6">
                 add class
                 <i class="fa-solid fa-pen-to-square"></i>
             </a>
         </div>
-    </div>
+    </div> -->
     <!-- successfully submision -->
      <?php
      if(isset($_SESSION['added_class'])){
@@ -90,7 +90,8 @@
      }
      ?>
     <!-- table of content -->
-     <h3 class="text-capitalize fs-6 text-dark py-2">view classes</h3>
+    <h3 class="text-capitalize fs-6 text-dark py-2">view classes</h3>
+    <h4 class="text-uppercase fw-bold text-center mb-3 bg-primary text-white py-2 rounded">CLASSES FOR <?php echo htmlspecialchars($school_name); ?> PRIMARY SCHOOL</h4>
      <div class="row">
         <div class="col-12">
             <table id="example" class="display">
@@ -98,7 +99,8 @@
                     <tr>
                         <th>Sn</th>
                         <th>Class Name</th>
-                        <th>Action</th>
+                        <th>Prefix</th>
+                        <th>Level</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,20 +116,15 @@
                             while($rows = mysqli_fetch_assoc($executeData)){
                                 $class_id = $rows['id'];
                                 $className = $rows['class_name'];
+                                $prefix = $rows['prefix'];
+                                $level = $rows['LEVEL'];
                                 ?>
                                 <tr>
                                     <td><?php echo $sn++ ?></td>
-                                    <td class="text-uppercase fw-bold"><?php echo $className ?></td>
-                                    <td>
-                                        <!-- delete class -->
-                                        <a href="<?php echo SITEURL ?>deleteClass.php?id=<?php echo $class_id ?>" 
-                                            class="btn btn-danger" 
-                                            onclick="return confirm('Do you want to delete this class?')">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </a>
-
-                                        
-                                    </td>
+                                    <td class="text-capitalize"><?php echo $className ?></td>
+                                    <td class="text-capitalize"><?php echo $prefix ?></td>
+                                    <td class="text-capitalize"><?php echo $level ?></td>
+                                    
                                 </tr>
                                 <?php
                             }

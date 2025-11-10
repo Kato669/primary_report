@@ -5,6 +5,8 @@ include("partials/header.php"); // header includes constants.php and session_sta
 function esc($v){ global $conn; return mysqli_real_escape_string($conn, trim($v)); }
 function iint($v){ return intval($v ?? 0); }
 
+error_reporting(E_ALL);
+
 /* ---------------- school info ---------------- */
 // fetch from profile
 $select_profile = "SELECT * FROM school_profile";
@@ -21,7 +23,7 @@ $email = $row_profile['email'];
 $motto = $row_profile['motto'];
 $logo = $row_profile['profile_image'];
 // end profile
-$school_name    = $school_profile." "."P/S";
+$school_name    = $school_profile." "."PRIMARY SCHOOL";
 $school_address = "P.O BOX"." ".$contact_2." ".$location;
 $school_tel     = $contact_1;
 $school_email   = $email;
@@ -71,7 +73,6 @@ if (!$sel_class || !$sel_stream || !$sel_term || !$sel_year) {
           <label class="form-label">Stream</label>
           <select id="streamSelect" name="stream_id" class="form-select" required>
             <option value="">Choose stream</option>
-            <!-- Streams will be loaded via AJAX -->
           </select>
         </div>
       <?php else: ?>
@@ -97,10 +98,16 @@ if (!$sel_class || !$sel_stream || !$sel_term || !$sel_year) {
         </select>
       </div>
 
-      <div class="col-md-3">
-        <label class="form-label">Academic Year</label>
-        <input name="academic_year" class="form-control" placeholder="e.g. 2025" required value="<?php echo htmlspecialchars($sel_year); ?>">
-      </div>
+     <div class="col-md-3">
+      <label class="form-label">Academic Year</label>
+      <select name="academic_year" class="form-select" required>
+        <option value="" disabled <?php echo empty($sel_year) ? 'selected' : ''; ?>>Select</option>
+        <option value="2025" <?php echo ($sel_year == '2025') ? 'selected' : ''; ?>>2025</option>
+        <option value="2024" <?php echo ($sel_year == '2024') ? 'selected' : ''; ?>>2024</option>
+        <option value="2023" <?php echo ($sel_year == '2023') ? 'selected' : ''; ?>>2023</option>
+      </select>
+    </div>
+
     </div>
 
     <div class="mt-3">
@@ -160,6 +167,7 @@ $subject_ids = array_column($subjects,'subject_id');
 
 /* ---------------- Fetch students (stream) and class students ---------------- */
 $students_stream = [];
+// Important: only consider marks that belong to exams that are visible
 $res = mysqli_query($conn, "
     SELECT DISTINCT 
         s.student_id, 
@@ -171,11 +179,15 @@ $res = mysqli_query($conn, "
     FROM marks m
     JOIN students s ON m.student_id = s.student_id
     WHERE m.exam_id IN (
-        SELECT exam_id 
-        FROM exams 
-        WHERE class_id = $sel_class 
-          AND term_id = $sel_term 
-          AND academic_year = '$sel_year'
+        SELECT e.exam_id 
+        FROM exams e
+        LEFT JOIN exam_visibility v 
+          ON v.class_id = e.class_id 
+          AND LOWER(v.exam_type) = LOWER(e.exam_name)
+        WHERE e.class_id = $sel_class 
+          AND e.term_id = $sel_term 
+          AND e.academic_year = '$sel_year'
+          AND (v.visible = 1 OR v.visible IS NULL)
     )
     AND s.stream_id = $sel_stream
     AND s.class_id = $sel_class
@@ -191,20 +203,40 @@ $res = mysqli_query($conn, "SELECT student_id, first_name, last_name FROM studen
 if (!$res) { die("Students class query failed: ".mysqli_error($conn)); }
 while($r = mysqli_fetch_assoc($res)) $students_class[$r['student_id']] = $r;
 
+// If user requested a single student via the Print Type = 'one', limit the stream list to that student
+if (!empty($_POST['print_type']) && $_POST['print_type'] === 'one' && !empty($_POST['student_id'])) {
+  $chosen = iint($_POST['student_id']);
+  if ($chosen && isset($students_stream[$chosen])) {
+    $students_stream = [$chosen => $students_stream[$chosen]];
+  } elseif ($chosen && isset($students_class[$chosen])) {
+    // student exists in class but may not have marks - include from class list
+    $students_stream = [$chosen => $students_class[$chosen]];
+  } else {
+    // no matching student found; empty the list so page shows no reports
+    $students_stream = [];
+  }
+}
+
 /* ---------------- Fetch exams that have marks for students in this class/stream & term/year ----------------
    We choose exams that are:
     - in exams table for the class+term+year AND
     - have marks for students in this class (so columns will exist only if some student has marks)
+   And we include only visible exams (or those not yet recorded in exam_visibility)
 */
 $exam_rows = [];
 $student_ids_for_marks = !empty($students_class) ? implode(',', array_map('intval', array_keys($students_class))) : '0';
+
 $exam_q = "
     SELECT DISTINCT e.exam_id, e.exam_name
     FROM marks m
     JOIN exams e ON m.exam_id = e.exam_id
+    LEFT JOIN exam_visibility v 
+      ON v.class_id = e.class_id 
+      AND LOWER(v.exam_type) = LOWER(e.exam_name)
     WHERE e.class_id = $sel_class
       AND e.term_id = $sel_term
       AND e.academic_year = '{$sel_year}'
+      AND (v.visible = 1 OR v.visible IS NULL)
       AND m.student_id IN ($student_ids_for_marks)
     ORDER BY e.exam_id
 ";
@@ -214,7 +246,17 @@ while($r = mysqli_fetch_assoc($er)) $exam_rows[] = $r;
 
 /* if no exams found via marks, fallback to exams table (maybe marks stored differently) */
 if (empty($exam_rows)) {
-    $er = mysqli_query($conn, "SELECT exam_id, exam_name FROM exams WHERE class_id=$sel_class AND term_id=$sel_term AND academic_year='{$sel_year}' ORDER BY exam_id");
+    $er = mysqli_query($conn, "SELECT e.exam_id, e.exam_name
+FROM exams e
+LEFT JOIN exam_visibility v 
+  ON v.class_id = e.class_id 
+  AND LOWER(v.exam_type) = LOWER(e.exam_name)
+WHERE e.class_id = $sel_class
+  AND e.term_id = $sel_term
+  AND e.academic_year = '{$sel_year}'
+  AND (v.visible = 1 OR v.visible IS NULL)
+ORDER BY e.exam_id
+");
     while($r = mysqli_fetch_assoc($er)) $exam_rows[] = $r;
 }
 
@@ -325,6 +367,13 @@ $stream_count = count($students_stream);
 /* fetch term name */
 $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms WHERE term_id=$sel_term LIMIT 1"))['term_name'] ?? 'Term';
 
+/* fetch class & stream display names for header */
+$class_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT prefix, class_name FROM classes WHERE id=$sel_class LIMIT 1")) ?: [];
+$class_prefix_display = $class_row['prefix'] ?? '';
+$class_name_display = $class_row['class_name'] ?? '';
+$stream_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT stream_name FROM streams WHERE id=$sel_stream LIMIT 1")) ?: [];
+$stream_name_display = $stream_row['stream_name'] ?? '';
+
 /* ---------------- render ---------------- */
 ?>
 <style>
@@ -337,6 +386,9 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
     width: 90%;
     /* margin: 50px auto 10px; */
   }
+  table tr th, table tr td {
+    border: 1px solid #000000ff !important;
+  }
   .report-watermark{ 
     position:absolute; 
     left:0; 
@@ -344,7 +396,7 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
     top:20px; 
     bottom:0; 
     opacity:0.09; 
-    background:url('img/logo.png') center center / 500px no-repeat; 
+    background:url('img/IT\ Logo-01.png') center center / 500px no-repeat; 
     pointer-events:none; 
   }
   .report-header{ 
@@ -441,21 +493,157 @@ $term_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT term_name FROM terms
         padding-left: 10px !important;
         padding-right: 10px !important;
     }
+    
 }
 
 /* button starts */
 </style>
-<div class="my-3  d-flex gap-2">
-    <!-- <button class="btn btn-primary" onclick="window.print()">
-        <i class="fa fa-print"></i> Print All
-    </button> -->
-    <!-- <button class="btn btn-success" id="downloadPdf">
-        <i class="fa fa-file-pdf"></i> Download PDF
-    </button> -->
-    <button class="btn btn-primary" id="printReports">
-        <i class="fa fa-print"></i> Print All
-    </button>
+<?php
+// load lists for the top selection form so users can change filters without leaving the page
+$classes = mysqli_query($conn, "SELECT id, prefix, class_name FROM classes ORDER BY id");
+$terms   = mysqli_query($conn, "SELECT term_id, term_name FROM terms ORDER BY term_id");
+// preserve print type and chosen student between requests
+$sel_print_type = $_POST['print_type'] ?? 'all';
+$sel_student = intval($_POST['student_id'] ?? 0);
+?>
+<div class="my-3">
+  <form method="POST" class="row d-flex g-2 align-items-center justify-center w-100">
+    <div class="container-fluid">
+      <div class="row">
+        <input type="hidden" name="filter_reports" value="1">
+        <div class="col-auto">
+          <label class="form-label mb-0">Class</label>
+          <select id="topClassSelect" name="class_id" class="form-select">
+            <option value="">Choose class</option>
+            <?php while($c = mysqli_fetch_assoc($classes)): ?>
+              <option value="<?php echo $c['id'] ?>" <?php echo ($sel_class==$c['id']?'selected':''); ?>><?php echo htmlspecialchars($c['prefix']) ?></option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+
+        <div class="col-auto">
+          <label class="form-label mb-0">Stream</label>
+          <select id="topStreamSelect" name="stream_id" class="form-select">
+            <option value="">Choose stream</option>
+            <!-- options loaded dynamically -->
+          </select>
+        </div>
+
+        <div class="col-auto">
+          <label class="form-label mb-0">Term</label>
+          <select name="term_id" class="form-select">
+            <option value="">Choose term</option>
+            <?php while($t = mysqli_fetch_assoc($terms)): ?>
+              <option value="<?php echo $t['term_id'] ?>" <?php echo ($sel_term==$t['term_id']?'selected':''); ?>><?php echo htmlspecialchars($t['term_name']) ?></option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+
+       <div class="col-auto">
+  <label class="form-label mb-0">Academic Year</label>
+  <select name="academic_year" class="form-select" required style="min-width: 120px;">
+    <option value="" disabled <?php echo empty($sel_year) ? 'selected' : ''; ?>>Select</option>
+    <option value="2025" <?php echo ($sel_year == '2025') ? 'selected' : ''; ?>>2025</option>
+    <option value="2024" <?php echo ($sel_year == '2024') ? 'selected' : ''; ?>>2024</option>
+    <option value="2023" <?php echo ($sel_year == '2023') ? 'selected' : ''; ?>>2023</option>
+  </select>
 </div>
+
+
+        <div class="col-auto">
+          <label class="form-label mb-0">Print Type</label>
+          <select id="printTypeSelect" name="print_type" class="form-select">
+            <option value="all" <?php echo ($sel_print_type === 'all' ? 'selected' : ''); ?>>All Students</option>
+            <option value="one" <?php echo ($sel_print_type === 'one' ? 'selected' : ''); ?>>One Student</option>
+          </select>
+        </div>
+
+        <div class="col-auto" id="studentSelectContainer" style="display: <?php echo ($sel_print_type === 'one' ? 'block' : 'none'); ?>;">
+          <label class="form-label mb-0">Student</label>
+          <select id="topStudentSelect" name="student_id" class="form-select">
+            <option value="">Choose student</option>
+            <?php if($sel_student && $sel_class):
+                // try to show the selected student as an option (will be replaced via AJAX on load)
+                $srow = mysqli_fetch_assoc(mysqli_query($conn, "SELECT student_id, first_name, last_name FROM students WHERE student_id=".intval($sel_student)." LIMIT 1"));
+                if($srow) echo '<option value="'.intval($srow['student_id']).'" selected>'.htmlspecialchars($srow['first_name'].' '.$srow['last_name']).'</option>';
+            endif; ?>
+          </select>
+        </div>
+
+        <div class="col-auto mt-2">
+          <button type="submit" class="btn btn-secondary mt-2"><i class="fa fa-search me-1"></i> Search</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="report-banner mt-3" style="background: #F5F1DC; padding:14px 18px; border-radius:6px; text-align:center; font-weight:800; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
+    <span style="font-size:1.05rem;">REPORTS FOR STUDENTS OF</span>
+    &nbsp;<span class="text-uppercase" style="font-size:1.05rem; color:#0b00acff"><?php echo htmlspecialchars($class_prefix_display); ?></span>
+    &nbsp; | &nbsp; TERM: <span class="text-uppercase"><?php echo htmlspecialchars($term_name); ?></span>
+    &nbsp; | &nbsp; YEAR: <span class="text-uppercase"><?php echo htmlspecialchars($sel_year); ?></span>
+  </div>
+
+  <div class="d-flex justify-content-center mt-2">
+    <button class="btn btn-primary" id="printReports">
+      <i class="fa fa-print"></i> Print
+    </button>
+  </div>
+</div>
+
+<script>
+// small helper to load streams for chosen class using existing endpoint get_streams.php
+function loadTopStreams(classID, selectedStream = null){
+  if(!classID) return;
+  fetch('get_streams.php?class_id='+encodeURIComponent(classID))
+    .then(r=>r.text())
+    .then(html=>{
+      document.getElementById('topStreamSelect').innerHTML = html;
+      if(selectedStream) document.getElementById('topStreamSelect').value = selectedStream;
+    }).catch(err=>console.error('Failed to load streams', err));
+}
+
+// load students for the chosen class into the student select (options)
+function loadTopStudents(classID, selectedStudent = null){
+  if(!classID) return;
+  fetch('get_students_options.php?class_id='+encodeURIComponent(classID))
+    .then(r=>r.text())
+    .then(html=>{
+      const sel = document.getElementById('topStudentSelect');
+      sel.innerHTML = html;
+      if(selectedStudent) sel.value = selectedStudent;
+    }).catch(err=>console.error('Failed to load students', err));
+}
+
+// toggle display of student select based on print type
+function toggleStudentContainer(){
+  const pt = document.getElementById('printTypeSelect').value;
+  const cont = document.getElementById('studentSelectContainer');
+  if(pt === 'one'){
+    cont.style.display = 'block';
+    const classId = document.getElementById('topClassSelect').value;
+    if(classId) loadTopStudents(classId, <?php echo json_encode($sel_student); ?>);
+  } else {
+    cont.style.display = 'none';
+  }
+}
+
+document.getElementById('topClassSelect').addEventListener('change', function(){
+  loadTopStreams(this.value);
+  // if user wants a single student, reload student list too
+  if(document.getElementById('printTypeSelect').value === 'one'){
+    loadTopStudents(this.value);
+  }
+});
+
+document.getElementById('printTypeSelect').addEventListener('change', function(){ toggleStudentContainer(); });
+
+// preload streams and students when page loads if a class is already selected
+<?php if($sel_class): ?>
+  loadTopStreams(<?php echo iint($sel_class); ?>, <?php echo iint($sel_stream) ?: 'null'; ?>);
+  if(<?php echo ($sel_print_type === 'one' ? 'true' : 'false'); ?>) loadTopStudents(<?php echo iint($sel_class); ?>, <?php echo iint($sel_student) ?: 'null'; ?>);
+<?php endif; ?>
+</script>
 <!-- button ends -->
 <div id="reportCardsContainer">
 <?php
@@ -483,12 +671,13 @@ foreach($students_stream as $sid => $stu){
             </div>
             <div class="col-lg-8 col-8 text-center">
               <div class="fw-bold fs-6"><?php echo ("<span style='font-size: 1.4rem'>$school_name</span>") ?></div>
+              <div class="text-capitalize text-danger"><?php echo htmlspecialchars($school_motto) ?></div>
               <?php echo htmlspecialchars($school_address) . "<br>" . 
                     htmlspecialchars("Tel: $school_tel") . "<br>" . 
                     htmlspecialchars("Email: $school_email"); 
               ?>
-              <div class="text-uppercase text-danger"><?php echo htmlspecialchars($school_motto) ?></div>
-              <div class="mt-2 fw-bold text-danger"><?php echo htmlspecialchars("END OF $term_name $sel_year REPORT") ?></div>
+              
+              <div class="mt-1 fw-bold text-danger text-uppercase"><?php echo htmlspecialchars("END OF $term_name $sel_year PROGRESSIVE REPORT") ?></div>
             </div>
             <div class="col-lg-2 col-2 text-center">
               <img style="width: 100px; height :auto" src="<?php echo $student_img?>" alt="student" class="student-photo" onerror="this.src='img/stdent_image/default.png'">
@@ -502,7 +691,7 @@ foreach($students_stream as $sid => $stu){
         <div>
           <strong>Student Name:</strong> <span class="text-uppercase"><?php echo htmlspecialchars($student_name) ?></span><br>
           <strong>Class:</strong> <span class="text-uppercase"><?php 
-              echo htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn,"SELECT class_name FROM classes WHERE id=$sel_class LIMIT 1"))['class_name'] ?? '') 
+              echo htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn,"SELECT prefix FROM classes WHERE id=$sel_class LIMIT 1"))['prefix'] ?? '') 
                  . ' ' . 
                  htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn,"SELECT stream_name FROM streams WHERE id=$sel_stream LIMIT 1"))['stream_name'] ?? '') 
               ?></span>
@@ -523,16 +712,16 @@ foreach($students_stream as $sid => $stu){
         <table class="subject-table">
           <thead>
             <tr>
-              <th class="text-uppercase">Subject</th>
+              <th class="text-uppercase" style="text-align: left; font-size: 1rem">Subject</th>
               <?php foreach($exam_rows as $ex): ?>
-              <th class="fw-bold text-uppercase">
+              <th class="fw-bold text-uppercase" style="font-size: 1rem;">
                   <?php echo htmlspecialchars(strtoupper($ex['exam_name'])); ?>
               </th>
               <?php endforeach; ?>
-              <th class="text-uppercase">Average</th>
-              <th class="text-uppercase">Grade</th>
-              <th class="text-uppercase">Comment</th>
-              <th class="text-uppercase">Initials</th>
+              <th class="text-uppercase" style="font-size: 1rem;">Average</th>
+              <th class="text-uppercase" style="font-size: 1rem;">Grade</th>
+              <th class="text-uppercase" style="font-size: 1rem;">Comment</th>
+              <th class="text-uppercase" style="font-size: 1rem;"> Tr's Initials</th>
             </tr>
           </thead>
           <tbody>
@@ -571,12 +760,14 @@ foreach($students_stream as $sid => $stu){
                   }
               ?>
                 <tr>
-                  <td><?php echo htmlspecialchars($sub['subject_name']) ?></td>
-                  <?php foreach($cells as $c): ?><td><?php echo $c; ?></td><?php endforeach; ?>
-                  <td class="fw-bold"><?php echo ($avg === ''? '': htmlspecialchars($avg)); ?></td>
-                  <td class="fw-bold"><?php echo htmlspecialchars($grade); ?></td>
-                  <td class="fw-bold"><?php echo htmlspecialchars($ginfo['comment']); ?></td>
-                  <td class="fw-bold"><?php echo htmlspecialchars($initials_map[$sub_id] ?? ''); ?></td>
+                  <td style="text-align: left; font-size: 0.9rem"><?php echo htmlspecialchars($sub['subject_name']) ?></td>
+                  <?php foreach($cells as $c): ?>
+                    <td  style="font-size: 0.9rem;"><?php echo $c; ?></td>
+                  <?php endforeach; ?>
+                  <td class="fw-bold" style="font-size: 0.9rem;"><?php echo ($avg === ''? '': htmlspecialchars($avg)); ?></td>
+                  <td class="fw-bold" style="font-size: 0.9rem;"><?php echo htmlspecialchars($grade); ?></td>
+                  <td class="fw-bold text-capitalize" style="font-size: 0.9rem;"><?php echo htmlspecialchars($ginfo['comment']); ?></td>
+                  <td class="fw-bold" style="font-size: 0.9rem;"><?php echo htmlspecialchars($initials_map[$sub_id] ?? ''); ?></td>
                 </tr>
               <?php endforeach; ?>
 
@@ -609,34 +800,35 @@ foreach($students_stream as $sid => $stu){
               ?>
 
               <!-- SUMMARY ROW -->
-              <tr style="font-weight:bold; background:#f8f9fa; text-align:center;">
+              <tr style="font-weight:bold; background:#f8f9fa; text-align:center; ">
                 <td></td>
                 <td colspan="<?php echo max(1, count($exam_rows)); ?>">
-                  AVERAGE: <?php echo htmlspecialchars($merged_exam_average); ?>
+                  <span style="font-size: 1rem;">AVERAGE</span>: <span style="font-size: 1rem; color: red !important"><?php echo htmlspecialchars($merged_exam_average); ?></span>
                 </td>
-                <td><?php echo htmlspecialchars($total_of_subject_averages); ?></td>
-                <td colspan="2">AGGREGATES: <?php echo htmlspecialchars($aggregate_total); ?></td>
-                <td>DIVISION: <?php echo htmlspecialchars($division === "-" ? "-" : $division); ?></td>
+                <td style="font-size: 1rem">TOTAL: <span style="color: red !important;"><?php echo htmlspecialchars($total_of_subject_averages); ?></span></td>
+                <td colspan="2" style="font-size: 1rem">AGGREGATES: <span style="color: red !important;"> <?php echo htmlspecialchars($aggregate_total); ?></span></td>
+                <td style="font-size: 1rem">DIVISION: <span style="color: red !important;"><?php echo htmlspecialchars($division === "-" ? "-" : $division); ?></span></td>
               </tr>
           </tbody>
         </table>
       </div>
 
       <!-- grading horizontal: two rows -->
+       <h6 class="text-uppercase text-bold text-danger text-center my-3">grading</h6>
       <div style="margin-top:12px;">
-        <table class="grading-horizontal">
+        <table class="grading-horizontal" style="width: 80%; margin: 0 auto; border: 1px solid #ff0000ff !important;">
           <tr>
             <?php
             $cols = $grading;
             $maxCols = max(1, min(9, count($cols)));
             $cols = array_slice($cols,0,$maxCols);
-            foreach($cols as $g) echo "<th>".htmlspecialchars($g['grade_name'])."</th>";
+            foreach($cols as $g) echo "<th style='color: red !important; font-size: 0.9rem'>".htmlspecialchars($g['grade_name'])."</th>";
             for($i=count($cols); $i<9; $i++) echo "<th></th>";
             ?>
           </tr>
           <tr>
             <?php
-            foreach($cols as $g) echo "<td>".htmlspecialchars($g['min_score']." - ".$g['max_score'])."</td>";
+            foreach($cols as $g) echo "<td  style='font-size: 0.9rem; font-weight: bold'>".htmlspecialchars($g['min_score']." - ".$g['max_score'])."</td>";
             for($i=count($cols); $i<9; $i++) echo "<td></td>";
             ?>
           </tr>
@@ -647,51 +839,61 @@ foreach($students_stream as $sid => $stu){
       <div style="display:flex; margin-top: 30px;">
         <div style="flex:1;">
           <strong>Class Teacher's Comment</strong>
-          <div class="signature"><?php echo nl2br(htmlspecialchars($ct_map[$sid] ?? '')); ?></div><br>
+          <div class="signature text-capitalize"><?php echo nl2br(htmlspecialchars($ct_map[$sid] ?? '')); ?></div><br>
           <div>Signature: _______________________________</div>
         </div>
         <div style="flex:1;">
           <strong>Head Teacher's Comment</strong>
-          <div class="signature"><?php echo nl2br(htmlspecialchars($ht_map[$sid] ?? '')); ?></div><br>
+          <div class="signature text-capitalize"><?php echo nl2br(htmlspecialchars($ht_map[$sid] ?? '')); ?></div><br>
           <div>Signature: _______________________________</div>
         </div>
       </div>
 
 <hr style="height: 3px; background-color: #000000 !important; border: none;">
+
       <div style="text-align:center; margin-top:20px; font-weight:700;">
         <?php
           $select_fees = "SELECT * FROM term_info WHERE class_id=$sel_class";
           $execute_fees = mysqli_query($conn, $select_fees);
+          $term_end = '';
+          $next_start = '';
+          $fees_day = '';
+          $fees_boarding = '';
           if($execute_fees && mysqli_num_rows($execute_fees) > 0){
             $fetch_fees = mysqli_fetch_assoc($execute_fees);
-            $end_date = $fetch_fees['term_end'];
-            $begin_term = $fetch_fees['next_start'];
-            $d_fees = $fetch_fees['fees_day'];
-            $b_fees = $fetch_fees['fees_boarding'];
+            $end_date = $fetch_fees['term_end'] ?? '';
+            $begin_term = $fetch_fees['next_start'] ?? '';
+            $d_fees = $fetch_fees['fees_day'] ?? '';
+            $b_fees = $fetch_fees['fees_boarding'] ?? '';
+            $term_end = $end_date;
+            $next_start = $begin_term;
+            $fees_day = ($d_fees !== '' && is_numeric($d_fees)) ? number_format(round($d_fees, 0), 0, '.', ',') : '';
+            $fees_boarding = ($b_fees !== '' && is_numeric($b_fees)) ? number_format(round($b_fees, 0), 0, '.', ',') : '';
           }
-          $term_end = $end_date;
-          $next_start = $begin_term;
-          $fees_day = round($d_fees, 0);
-          $fees_boarding = round($b_fees, 0);
-          echo "This Term has ended On: <span class='text-danger'>$term_end</span> | Next Term Begins On: <span class='text-danger'>$next_start</span><br>";
-          echo "Next Term Fees: Day: <span class='text-danger'>$fees_day</span> | Boarding: <span class='text-danger'>$fees_boarding</span><br>";
+          echo "This Term has ended On: <span class='text-danger'>" . htmlspecialchars($term_end) . "</span> | Next Term Begins On: <span class='text-danger'>" . htmlspecialchars($next_start) . "</span><br>";
+          echo "Next Term Fees: Day: UgX: <span class='text-danger'>" . htmlspecialchars($fees_day) . "</span> | Boarding: UgX:  <span class='text-danger'>" . htmlspecialchars($fees_boarding) . "</span><br>";
           echo "<span style='font-size: .8rem; font-style:italic; color: red !important'>This Report is invalid without school Stamp</span>";
         ?>
       </div>
 
-    </div>
+        </div>
 
-    <div class="page-break"></div>
-  <?php } // end foreach students_stream ?>
-</div>
+        <?php
+          // Only add a page break if there are more students to print after this one
+          if (count($students_stream) > 1 && $sid !== array_key_last($students_stream)) {
+            echo '<div class="page-break"></div>';
+          }
+        ?>
+        <?php } // end foreach students_stream ?>
+      </div>
 
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-document.getElementById("printReports").addEventListener("click", function () {
-    window.print();
-});
+      </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+      <script>
+      document.getElementById("printReports").addEventListener("click", function () {
+        window.print();
+      });
 
 // jsPDF download (handles large content better)
 document.getElementById("downloadPdf").addEventListener("click", async function () {

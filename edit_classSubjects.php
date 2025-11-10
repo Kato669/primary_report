@@ -5,57 +5,66 @@ include("partials/header.php");
 // Make sure $conn (DB connection) is included
 // include("partials/db_connect.php");
 
-// Check for class_subject ID in URL
-if(!isset($_GET['id'])){
+// Check for class ID in URL
+if(!isset($_GET['class_id'])){
     header("Location: class_subjects.php");
     exit();
 }
 
-$class_subject_id = intval($_GET['id']);
+$class_id = intval($_GET['class_id']);
 
-// Fetch current record
-$stmt = $conn->prepare("SELECT * FROM class_subjects WHERE id = ?");
-$stmt->bind_param("i", $class_subject_id);
+// Fetch current class and its subjects
+$stmt = $conn->prepare("
+    SELECT c.id as class_id, 
+           c.class_name,
+           GROUP_CONCAT(cs.subject_id) as subject_ids
+    FROM classes c
+    LEFT JOIN class_subjects cs ON c.id = cs.class_id
+    WHERE c.id = ?
+    GROUP BY c.id, c.class_name
+");
+$stmt->bind_param("i", $class_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if($result->num_rows === 0){
-    die("Class-Subject record not found.");
+    die("Class record not found.");
 }
 
 $record = $result->fetch_assoc();
 $currentClass = $record['class_id'];
-$currentSubject = $record['subject_id'];
+$currentSubjects = $record['subject_ids'] ? explode(',', $record['subject_ids']) : [];
 
 // Handle form submission
 if(isset($_POST['updateClass'])){
-    $class_id = intval($_POST['class'] ?? 0);
-    $subject_id = intval($_POST['subject'] ?? 0);
-
-    // Validate
-    if($class_id === 0 || $subject_id === 0){
-        echo '<div class="alert alert-danger">Please select both class and subject.</div>';
+    $selected_subjects = isset($_POST['subjects']) ? $_POST['subjects'] : [];
+    
+    if(empty($selected_subjects)){
+        echo '<div class="alert alert-danger">Please select at least one subject.</div>';
     } else {
-        // Check for duplicates (excluding current record)
-        $dupCheck = $conn->prepare("SELECT * FROM class_subjects WHERE class_id = ? AND subject_id = ? AND id != ?");
-        $dupCheck->bind_param("iii", $class_id, $subject_id, $class_subject_id);
-        $dupCheck->execute();
-        $dupResult = $dupCheck->get_result();
-
-        if($dupResult->num_rows > 0){
-            echo '<div class="alert alert-warning">This class and subject combination already exists.</div>';
-        } else {
-            // Update record
-            $update = $conn->prepare("UPDATE class_subjects SET class_id = ?, subject_id = ? WHERE id = ?");
-            $update->bind_param("iii", $class_id, $subject_id, $class_subject_id);
-
-            if($update->execute()){
-                $_SESSION['update_subject'] = "updated successfully";
-                header("Location: class_subjects.php?msg=updated");
-                exit();
-            } else {
-                echo '<div class="alert alert-danger">Update failed. Please try again.</div>';
+        // Start transaction
+        $conn->begin_transaction();
+        
+        try {
+            // First delete all existing subjects for this class
+            $delete = $conn->prepare("DELETE FROM class_subjects WHERE class_id = ?");
+            $delete->bind_param("i", $class_id);
+            $delete->execute();
+            
+            // Insert new subject selections
+            $insert = $conn->prepare("INSERT INTO class_subjects (class_id, subject_id) VALUES (?, ?)");
+            foreach($selected_subjects as $subject_id){
+                $insert->bind_param("ii", $class_id, $subject_id);
+                $insert->execute();
             }
+            
+            $conn->commit();
+            $_SESSION['update_subject'] = "Subjects updated successfully";
+            header("Location: class_subjects.php");
+            exit();
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo '<div class="alert alert-danger">Update failed. Please try again.</div>';
         }
     }
 }
@@ -68,33 +77,31 @@ if(isset($_POST['updateClass'])){
             <form method="POST" action="">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Class</label>
-                    <select class="form-select" name="class">
-                        <option disabled>Choose class</option>
-                        <?php 
-                        $classes = $conn->query("SELECT * FROM classes");
-                        while($row = $classes->fetch_assoc()){
-                            $selected = ($currentClass == $row['id']) ? "selected" : "";
-                            echo "<option value='{$row['id']}' $selected>{$row['class_name']}</option>";
-                        }
-                        ?>
-                    </select>
+                    <input type="text" class="form-control" value="<?php echo $record['class_name']; ?>" readonly>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Subject</label>
-                    <select class="form-select" name="subject">
-                        <option disabled>Choose subject</option>
+                    <label class="form-label fw-bold">Select Subjects</label>
+                    <div class="border rounded p-3">
                         <?php 
-                        $subjects = $conn->query("SELECT * FROM subjects");
+                        $subjects = $conn->query("SELECT * FROM subjects ORDER BY subject_name ASC");
                         while($row = $subjects->fetch_assoc()){
-                            $selected = ($currentSubject == $row['subject_id']) ? "selected" : "";
-                            echo "<option value='{$row['subject_id']}' $selected>{$row['subject_name']}</option>";
+                            $checked = in_array($row['subject_id'], $currentSubjects) ? "checked" : "";
+                            echo "
+                            <div class='form-check'>
+                                <input class='form-check-input' type='checkbox' name='subjects[]' 
+                                    value='{$row['subject_id']}' id='subject_{$row['subject_id']}' $checked>
+                                <label class='form-check-label' for='subject_{$row['subject_id']}'>
+                                    {$row['subject_name']}
+                                </label>
+                            </div>";
                         }
                         ?>
-                    </select>
+                    </div>
                 </div>
 
-                <button type="submit" name="updateClass" class="btn btn-warning">Update</button>
+                <button type="submit" name="updateClass" class="btn btn-warning">Update Subjects</button>
+                <a href="class_subjects.php" class="btn btn-secondary">Cancel</a>
             </form>
           
         </div>

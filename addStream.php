@@ -4,7 +4,7 @@
     include("partials/adminOnly.php");
     if(isset($_POST['addStream'])){
         $class_name = mysqli_real_escape_string($conn, $_POST['class_name']);
-        $streamName = strtolower(trim(mysqli_real_escape_string($conn, $_POST['streamName'])));
+        $streamName = strtoupper(trim(mysqli_real_escape_string($conn, $_POST['streamName'])));
         $onlyLetters = preg_match('/^[a-zA-Z]+$/', $streamName);
         if(empty($class_name) || empty($streamName)){
             echo '<script>toastr.error("All fields are required");</script>';

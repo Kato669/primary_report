@@ -56,11 +56,13 @@ unset($_SESSION['success']);
     <div class="row g-0 my-2">
         <div class="col-lg-4 col-md-4 col-sm-12">
             <a href="<?php echo SITEURL ?>addTeacher_assignment.php" class="btn text-capitalize text-white btn-success fs-6">
-                assign roles
+                Asign Class
                 <i class="fa-solid fa-pen-to-square"></i>
             </a>
         </div>
-        <h3 class="text-capitalize fs-6 text-dark py-2">view teacher assignment</h3>
+        <div class="col-12 mt-2">
+        <h4 class="text-uppercase fw-bold text-center mb-3 bg-primary text-white py-2 rounded">CLASS TEACHER ROLES AT <?php echo htmlspecialchars($school_name); ?> PRIMARY SCHOOL</h4>
+         </div>
         <table id="example" class="display">
             <thead>
                 <tr>

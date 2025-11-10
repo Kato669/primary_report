@@ -3,7 +3,27 @@ ob_start();
 include("partials/header.php"); 
 include("partials/adminOnly.php");
 
-// Show success message if redirected after insert
+// -------------------- LIN AUTO GENERATOR --------------------
+function generateLIN($conn) {
+    $prefix = "JPM"; // Change this to your school code
+    $year = date("Y");
+
+    $sql = "SELECT LIN FROM students WHERE LIN LIKE '$prefix/$year/%' ORDER BY student_id DESC LIMIT 1";
+    $res = mysqli_query($conn, $sql);
+
+    $nextNum = 1;
+    if ($res && mysqli_num_rows($res) > 0) {
+        $last = mysqli_fetch_assoc($res)['LIN'];
+        $parts = explode('/', $last);
+        $lastNum = intval(end($parts));
+        $nextNum = $lastNum + 1;
+    }
+
+    $formattedNum = str_pad($nextNum, 3, '0', STR_PAD_LEFT);
+    return "$prefix/$year/$formattedNum";
+}
+
+// -------------------- SUCCESS MESSAGE --------------------
 if (isset($_GET['success']) && $_GET['success'] == 1) {
     echo '<script>
         toastr.options = { "closeButton": true, "timeOut": "3000" };
@@ -15,16 +35,18 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
 $firstName = $lastName = $gender = $dob = $lin = $classID = $streamID = $status = "";
 $image_name = "";
 
+// -------------------- FORM SUBMISSION --------------------
 if (isset($_POST['addstdnt'])) {
-    // Get and sanitize input
-    $firstName = strtolower(trim(mysqli_real_escape_string($conn, $_POST['first_name'] ?? "")));
-    $lastName  = strtolower(trim(mysqli_real_escape_string($conn, $_POST['last_name'] ?? "")));
-    $gender    = $_POST['gender'] ?? '';
+    $firstName = strtoupper(trim(mysqli_real_escape_string($conn, $_POST['first_name'] ?? "")));
+    $lastName  = strtoupper(trim(mysqli_real_escape_string($conn, $_POST['last_name'] ?? "")));
+    $gender    = strtoupper($_POST['gender'] ?? '');
     $dob       = trim(mysqli_real_escape_string($conn, $_POST['dob'] ?? ""));
-    $lin       = trim(mysqli_real_escape_string($conn, $_POST['lin'] ?? ""));
     $classID   = intval($_POST['stdnt_class'] ?? 0);
     $streamID  = intval($_POST['stdnt_stream'] ?? 0);
-    $status    = $_POST['status'] ?? "";
+    $status    = strtoupper($_POST['status'] ?? "");
+
+    // Generate LIN automatically
+    $lin = generateLIN($conn);
 
     // Handle image upload
     if (!empty($_FILES['image']['name'])) {
@@ -46,8 +68,8 @@ if (isset($_POST['addstdnt'])) {
     }
 
     // Validate name format
-    $first_valid = preg_match('/^[a-zA-Z]+$/', $firstName);
-    $last_valid  = preg_match('/^[a-zA-Z ]+$/', $lastName);
+    $first_valid = preg_match('/^[A-Z]+$/', $firstName);
+    $last_valid  = preg_match('/^[A-Z ]+$/', $lastName);
 
     if (!empty($firstName) && !empty($lastName) && !empty($gender) && !empty($dob) && $classID && $streamID) {
         if ($first_valid && $last_valid) {
@@ -83,6 +105,9 @@ if (isset($_POST['addstdnt'])) {
         echo '<script>Command: toastr["error"]("Please fill all required fields.");</script>';
     }
 }
+
+// Pre-generate LIN for display
+$autoLIN = generateLIN($conn);
 ?>
 
 <div class="container-fluid my-3">
@@ -96,14 +121,14 @@ if (isset($_POST['addstdnt'])) {
                 <div class="mb-3">
                     <label class="form-label fw-bold">Last name</label>
                     <input type="text" class="form-control" name="last_name" value="<?= htmlspecialchars($lastName) ?>" required>
-                    <span class="text-danger fs-6">If a student has other name, put it here too</span>
+                    <span class="text-danger fs-6">If a student has other names, include them here.</span>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Gender</label>
                     <select class="form-select" name="gender" required>
                         <option value="" disabled selected>Choose gender</option>
-                        <option value="male" <?= $gender=="male" ? "selected": "" ?>>Male</option>
-                        <option value="female" <?= $gender=="female" ? "selected": "" ?>>Female</option>
+                        <option value="MALE" <?= $gender=="MALE" ? "selected": "" ?>>Male</option>
+                        <option value="FEMALE" <?= $gender=="FEMALE" ? "selected": "" ?>>Female</option>
                     </select>
                 </div>
                 <div class="mb-3">
@@ -114,23 +139,23 @@ if (isset($_POST['addstdnt'])) {
                     <label class="form-label fw-bold">Status</label>
                     <select class="form-select" name="status" required>
                         <option value="" disabled selected>Choose status</option>
-                        <option value="day" <?= $status=="day" ? "selected": "" ?>>Day</option>
-                        <option value="boarding" <?= $status=="boarding" ? "selected": "" ?>>Boarding</option>
+                        <option value="DAY" <?= $status=="DAY" ? "selected": "" ?>>Day</option>
+                        <option value="BOARDING" <?= $status=="BOARDING" ? "selected": "" ?>>Boarding</option>
                     </select>
                 </div>
         </div>
 
         <div class="col-lg-6 col-sm-12 p-3">
             <div class="mb-3">
-                <label class="form-label fw-bold">LIN</label>
-                <input type="text" class="form-control text-uppercase" name="lin" value="<?= htmlspecialchars($lin) ?>">
+                <label class="form-label fw-bold">LIN (Auto-Generated)</label>
+                <input type="text" class="form-control text-uppercase" name="lin" value="<?= htmlspecialchars($autoLIN) ?>" readonly>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Student class</label>
                 <select class="form-select" name="stdnt_class" id="stdnt_class" required>
                     <option value="">Choose class</option>
                     <?php 
-                    $selectClass = "SELECT id, class_name FROM classes ORDER BY class_name";
+                    $selectClass = "SELECT id, class_name FROM classes";
                     $executeClass = mysqli_query($conn, $selectClass);
                     while($fetchedClass = mysqli_fetch_assoc($executeClass)){
                         echo '<option value="'.$fetchedClass['id'].'" '.(($classID==$fetchedClass['id']) ? 'selected':'').'>'.htmlspecialchars($fetchedClass['class_name']).'</option>';
@@ -160,7 +185,6 @@ $(document).ready(function () {
     $('#stdnt_class').on('change', function () {
         let classId = $(this).val();
         if (classId) {
-            // ✅ Send request using GET instead of POST
             $.get('get_streams.php', { class_id: classId })
                 .done(function (response) {
                     $('#stdnt_stream').html(response);

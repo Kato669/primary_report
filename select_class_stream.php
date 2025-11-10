@@ -10,7 +10,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
 }
 
 // Fetch all classes
-$class_res = mysqli_query($conn, "SELECT id, class_name FROM classes ORDER BY class_name");
+$class_res = mysqli_query($conn, "SELECT id, class_name FROM classes");
 
 // Fetch all terms from DB (instead of hardcoding 1,2,3)
 $terms_res = mysqli_query($conn, "SELECT term_id, term_name FROM terms ORDER BY term_id");

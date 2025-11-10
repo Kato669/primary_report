@@ -78,17 +78,17 @@ $class_labels = [];
 $class_counts = [];
 
 $class_query = "
-  SELECT c.class_name, COUNT(s.student_id) AS total_students
+  SELECT c.prefix, COUNT(s.student_id) AS total_students
   FROM classes c
   LEFT JOIN students s ON s.class_id = c.id
-  GROUP BY c.id, c.class_name
-  ORDER BY c.class_name
+  GROUP BY c.id, c.prefix
+  ORDER BY c.prefix
 ";
 
 $res = mysqli_query($conn, $class_query);
 if($res){
   while($row = mysqli_fetch_assoc($res)){
-    $class_labels[] = $row['class_name'];
+    $class_labels[] = $row['prefix'];
     $class_counts[] = $row['total_students'];
   }
 }
@@ -97,7 +97,7 @@ if($res){
 <div class="container-fluid my-4">
   <div class="row g-3">
     <!-- Total Students Card -->
-    <div class="col-lg-6 col-sm-12 col-md-12">
+    <div class="col-lg-3 col-sm-12 col-md-12">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-primary text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="card-number fs-4 fw-bold"><?php echo $stdnts ?></span>
@@ -111,7 +111,7 @@ if($res){
     </div>
 
     <!-- Total teachers Card -->
-    <div class="col-lg-6 col-sm-12 col-md-12">
+    <div class="col-lg-3 col-sm-12 col-md-12">
       <a href="<?php echo SITEURL ?>users.php" class="dashboard-card text-decoration-none p-3 bg-success text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="card-number fs-4 fw-bold"><?php echo $count ?></span>
@@ -125,7 +125,7 @@ if($res){
     </div>
 
     <!-- Total female Card -->
-    <div class="col-lg-6 col-sm-12 col-md-12">
+    <div class="col-lg-3 col-sm-12 col-md-12">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-secondary text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="card-number fs-4 fw-bold"><?php echo $femaleNum ?></span>
@@ -139,7 +139,7 @@ if($res){
     </div>
 
     <!-- Total male Card -->
-    <div class="col-lg-6 col-sm-12 col-md-12">
+    <div class="col-lg-3 col-sm-12 col-md-12">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-danger text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="card-number fs-4 fw-bold"><?php echo $maleNum ?></span>
@@ -201,7 +201,7 @@ if($res){
         label: 'Number of Students',
         data: <?php echo json_encode($class_counts); ?>,
         backgroundColor: '#009549',
-        borderColor: '#0056b3',
+        borderColor: '#009549',
         borderWidth: 1,
         borderRadius: 5
       }]

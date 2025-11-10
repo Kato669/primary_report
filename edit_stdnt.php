@@ -8,14 +8,14 @@
 
 if (isset($_POST['updatestdnt'])) {
     $student_id = intval($_POST['student_id']);
-    $firstName  = strtolower(trim(mysqli_real_escape_string($conn, $_POST['first_name'])));
-    $lastName   = strtolower(trim(mysqli_real_escape_string($conn, $_POST['last_name'])));
-    $gender     = mysqli_real_escape_string($conn, $_POST['gender']);
+    $firstName  = strtoupper(trim(mysqli_real_escape_string($conn, $_POST['first_name'])));
+    $lastName   = strtoupper(trim(mysqli_real_escape_string($conn, $_POST['last_name'])));
+    $gender     = strtoupper(mysqli_real_escape_string($conn, $_POST['gender']));
     $dob        = mysqli_real_escape_string($conn, $_POST['dob']);
-    $status     = mysqli_real_escape_string($conn, $_POST['status']);
+    $status     = strtoupper(mysqli_real_escape_string($conn, $_POST['status']));
     $lin        = strtoupper(trim(mysqli_real_escape_string($conn, $_POST['lin'])));
     $classID    = intval($_POST['stdnt_class']);
-    $streamID   = intval($_POST['stdnt_stream']);
+    $streamID   = strtoupper(intval($_POST['stdnt_stream']));
 
     // Array to store validation errors
     $errors = [];
@@ -24,7 +24,7 @@ if (isset($_POST['updatestdnt'])) {
     if (!preg_match("/^[a-zA-Z]+$/", $firstName)) {
         $errors[] = "First name must contain only letters.";
     }
-    if (!preg_match("/^[a-zA-Z]+$/", $lastName)) {
+    if (!preg_match("/^[a-zA-Z ]+$/", $lastName)) {
         $errors[] = "Last name must contain only letters.";
     }
     if (empty($gender)) {
@@ -170,8 +170,8 @@ if (isset($_GET['student_id'])) {
                         <label class="form-label text-capitalize fw-bold">gender</label>
                         <select class="form-select shadow-none" name="gender" required>
                             <option disabled>Choose gender</option>
-                            <option value="male" <?php echo ($gender == "male") ? "selected" : ""; ?>>male</option>
-                            <option value="female" <?php echo ($gender == "female") ? "selected" : ""; ?>>female</option>
+                            <option value="MALE" <?php echo ($gender == "male") ? "selected" : ""; ?>>male</option>
+                            <option value="FEMALE" <?php echo ($gender == "female") ? "selected" : ""; ?>>female</option>
                         </select>
                     </div>
 

@@ -3,10 +3,10 @@
     session_start();
     //declare global
     define("LOCALHOST",'localhost');
-    define('DBNAME', 'report');
+    define('DBNAME', 'primary_db');
     define("DBUSERNAME","root");
     define("DBPASSWORD","");
-    define("SITEURL","http://localhost/report/");
+    define("SITEURL","http://localhost/primary_report/");
     
 
     $conn = mysqli_connect(LOCALHOST, DBUSERNAME, DBPASSWORD, DBNAME);

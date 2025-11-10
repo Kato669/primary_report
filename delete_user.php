@@ -12,8 +12,30 @@ if (isset($_GET['user_id'])) {
     $user_id = (int) $_GET['user_id'];
 
     if ($user_id > 0) {
-        // ✅ Check if the user exists
-        $check_stmt = $conn->prepare("SELECT role, is_deleted FROM users WHERE user_id = ?");
+        // Determine which column to use for suspension
+        // Prefer is_suspended (1 = suspended), then is_active (1 = active), else fall back to is_deleted (1 = deleted/suspended)
+        $flag_col = null;
+        $flag_semantics = 'suspended_when_1'; // or 'active_when_1'
+
+        $res = mysqli_query($conn, "SHOW COLUMNS FROM users LIKE 'is_suspended'");
+        if ($res && mysqli_num_rows($res) > 0) {
+            $flag_col = 'is_suspended';
+            $flag_semantics = 'suspended_when_1';
+        } else {
+            $res = mysqli_query($conn, "SHOW COLUMNS FROM users LIKE 'is_active'");
+            if ($res && mysqli_num_rows($res) > 0) {
+                $flag_col = 'is_active';
+                $flag_semantics = 'active_when_1';
+            } else {
+                // fallback to existing column used previously
+                $flag_col = 'is_deleted';
+                $flag_semantics = 'suspended_when_1';
+            }
+        }
+
+        // Check if the user exists and get current flag value
+        $check_sql = "SELECT role, " . $flag_col . " AS flag_val FROM users WHERE user_id = ?";
+        $check_stmt = $conn->prepare($check_sql);
         $check_stmt->bind_param("i", $user_id);
         $check_stmt->execute();
         $check_result = $check_stmt->get_result();
@@ -22,36 +44,70 @@ if (isset($_GET['user_id'])) {
 
         if (!$user) {
             $_SESSION['delete_user'] = "User not found.";
-        } elseif ($user['is_deleted'] == 1) {
-            $_SESSION['delete_user'] = "This user is already deleted.";
-        } elseif ($user['role'] === 'admin') {
-            // ✅ Prevent deleting the only admin
-            $admin_count_res = mysqli_query($conn, "SELECT COUNT(*) AS total_admins FROM users WHERE role='admin' AND is_deleted=0");
-            $admin_count = mysqli_fetch_assoc($admin_count_res)['total_admins'];
-
-            if ($admin_count <= 1) {
-                $_SESSION['delete_user'] = "Cannot delete the only remaining admin.";
-            } elseif ($user_id == $_SESSION['user_id']) {
-                $_SESSION['delete_user'] = "You cannot delete your own account while logged in.";
-            } else {
-                // ✅ Soft delete the admin
-                $stmt = $conn->prepare("UPDATE users SET is_deleted = 1 WHERE user_id = ?");
-                $stmt->bind_param("i", $user_id);
-                if ($stmt->execute()) {
-                    $_SESSION['delete_user'] = "Admin soft-deleted successfully.";
-                } else {
-                    $_SESSION['delete_user'] = "Failed to delete admin (Database error).";
-                }
-                $stmt->close();
-            }
         } else {
-            // ✅ Soft delete non-admin user
-            $stmt = $conn->prepare("UPDATE users SET is_deleted = 1 WHERE user_id = ?");
+            // Determine whether the user is currently suspended
+            $flag_val = (int) $user['flag_val'];
+            $currently_suspended = false;
+            if ($flag_semantics === 'suspended_when_1') {
+                $currently_suspended = ($flag_val === 1);
+            } else { // active_when_1
+                $currently_suspended = ($flag_val === 0);
+            }
+
+            // If target is admin, ensure we don't suspend the only active admin
+            if ($user['role'] === 'admin') {
+                if ($flag_semantics === 'active_when_1') {
+                    $admin_count_res = mysqli_query($conn, "SELECT COUNT(*) AS total_admins FROM users WHERE role='admin' AND " . $flag_col . "=1");
+                    $admin_count = mysqli_fetch_assoc($admin_count_res)['total_admins'];
+                    // If we're about to suspend (set active=0) and there's only 1 active admin, block it
+                    if (!$currently_suspended && $admin_count <= 1) {
+                        $_SESSION['delete_user'] = "Cannot suspend the only remaining admin.";
+                        header("Location:" . SITEURL . "users.php");
+                        exit;
+                    }
+                } else {
+                    // suspended_when_1 semantics: count admins where flag = 0 (not suspended)
+                    $admin_count_res = mysqli_query($conn, "SELECT COUNT(*) AS total_admins FROM users WHERE role='admin' AND " . $flag_col . "=0");
+                    $admin_count = mysqli_fetch_assoc($admin_count_res)['total_admins'];
+                    if (!$currently_suspended && $admin_count <= 1) {
+                        $_SESSION['delete_user'] = "Cannot suspend the only remaining admin.";
+                        header("Location:" . SITEURL . "users.php");
+                        exit;
+                    }
+                }
+
+                if ($user_id == $_SESSION['user_id']) {
+                    $_SESSION['delete_user'] = "You cannot suspend your own account while logged in.";
+                    header("Location:" . SITEURL . "users.php");
+                    exit;
+                }
+            }
+
+            // Toggle suspension
+            if ($currently_suspended) {
+                // Unsuspend
+                if ($flag_semantics === 'active_when_1') {
+                    $update_sql = "UPDATE users SET " . $flag_col . " = 1 WHERE user_id = ?";
+                } else {
+                    $update_sql = "UPDATE users SET " . $flag_col . " = 0 WHERE user_id = ?";
+                }
+                $action_msg = "unsuspended";
+            } else {
+                // Suspend
+                if ($flag_semantics === 'active_when_1') {
+                    $update_sql = "UPDATE users SET " . $flag_col . " = 0 WHERE user_id = ?";
+                } else {
+                    $update_sql = "UPDATE users SET " . $flag_col . " = 1 WHERE user_id = ?";
+                }
+                $action_msg = "suspended";
+            }
+
+            $stmt = $conn->prepare($update_sql);
             $stmt->bind_param("i", $user_id);
             if ($stmt->execute()) {
-                $_SESSION['delete_user'] = "User soft-deleted successfully.";
+                $_SESSION['delete_user'] = "User successfully " . $action_msg . ".";
             } else {
-                $_SESSION['delete_user'] = "Failed to delete user (Database error).";
+                $_SESSION['delete_user'] = "Failed to update user status (Database error).";
             }
             $stmt->close();
         }

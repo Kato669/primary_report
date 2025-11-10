@@ -70,6 +70,7 @@
     ?>
 
     <h3 class="text-capitalize fs-6 text-dark py-2">view streams</h3>
+    <h4 class="text-uppercase fw-bold text-center mb-3 bg-primary text-white py-2 rounded">STREAMS FOR <?php echo htmlspecialchars($school_name); ?> PRIMARY SCHOOL</h4>
     <div class="row">
         <div class="col-lg-12">
             <table id="example" class="display">
@@ -103,7 +104,7 @@
                                 <tr>
                                     <td><?php echo $sn++; ?></td>
                                     <td><?php echo $row['className']; ?></td>
-                                    <td class="text-capitalize"><?php echo $streamName; ?></td>
+                                    <td class="text-uppercase"><?php echo $streamName; ?></td>
                                     <td>
                                         
                                         <a href="<?php echo SITEURL ?>delete_stream.php?id=<?php echo $stream_id ?>" 

@@ -88,7 +88,7 @@ if (isset($_POST['fees'])) {
             <select class="form-select" name="filter_class" required>
                 <option value="">Select Class</option>
                 <?php 
-                    $classes = mysqli_query($conn, "SELECT * FROM classes ORDER BY class_name");
+                    $classes = mysqli_query($conn, "SELECT * FROM classes");
                     while($c = mysqli_fetch_assoc($classes)){
                         echo "<option value='{$c['id']}' ".($class_id==$c['id']?"selected":"").">{$c['class_name']}</option>";
                     }

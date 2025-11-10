@@ -12,7 +12,7 @@ $errors = [];
 
 if (isset($_POST['user'])) {
     // Collect form data
-    $fullname = trim($_POST['fullname'] ?? "");
+    $fullname = strtoupper(trim($_POST['fullname'] ?? ""));
     $username = strtolower(trim($_POST['username'] ?? ""));
     $password = trim($_POST['password'] ?? "");
     $role = $_POST['role'] ?? "";

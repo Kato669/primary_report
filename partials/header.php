@@ -14,7 +14,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SRMS</title>
+    <title>EduConnect Uganda</title>
     <!-- fontawesome  -->
     <script src="https://kit.fontawesome.com/78e0d6a352.js" crossorigin="anonymous"></script>
     <link rel="shortcut icon" href="img/icon.png" type="image/x-icon">
@@ -41,7 +41,7 @@
                 $row = mysqli_fetch_assoc($execute);
                 $school_name = $row['school_name'];
               ?>
-              <?php echo $school_name ?> P/S
+              <?php echo $school_name ?> PRIMARY SCHOOL
             </h3>
           </div>
           <div class="col-lg-9 d-flex justify-content-end gap-4 top-right">
@@ -73,7 +73,8 @@
                     <?php foreach ($_SESSION['assignments'] as $index => $assign): ?>
                         <option value="<?php echo $index; ?>"
                             <?php echo ($_SESSION['class_id'] == $assign['class_id']) ? 'selected' : ''; ?>>
-                            Class <?php echo htmlspecialchars($assign['class_name']); ?> - Stream <?php echo htmlspecialchars($assign['stream_name']); ?>
+                            Class: <?php echo htmlspecialchars($assign['class_name']); ?> - 
+                            Stream:<?php echo htmlspecialchars($assign['stream_name']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -155,7 +156,7 @@
             <i class="fa-solid fa-file-pen"></i>
             <span class="text-capitalize side-text">examination</span>
           </a>
-          <a href="<?php echo SITEURL ?>declare_marks.php" class="<?php echo isActive('declare_marks.php'); ?>">
+          <a href="<?php echo SITEURL ?>addScore.php" class="<?php echo isActive('addScore.php'); ?>">
             <i class="fa-solid fa-pen-to-square"></i>
             <span class="text-capitalize side-text">declare marks</span>
           </a>
@@ -179,7 +180,7 @@
         </div>
 
         <div class="right-bar" id="right-bar">
-          <div class="container-fluid pt-1 pb-1" style="background-color: #009549;">
+          <div class="container-fluid pt-1 pb-1" style="background-color: #001870;">
             <ul class="list-unstyled mb-0 dashboard">
               <li>
                 <i class="fa-solid fa-house" style="color: #fff;"></i>

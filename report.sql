@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 06, 2025 at 08:11 PM
+-- Generation Time: Nov 06, 2025 at 04:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -29,21 +29,23 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `classes` (
   `id` int(11) NOT NULL,
-  `class_name` varchar(255) DEFAULT NULL
+  `class_name` varchar(255) DEFAULT NULL,
+  `prefix` varchar(255) DEFAULT NULL,
+  `LEVEL` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `classes`
 --
 
-INSERT INTO `classes` (`id`, `class_name`) VALUES
-(30, 'p1'),
-(31, 'p2'),
-(32, 'p3'),
-(33, 'p4'),
-(34, 'p5'),
-(35, 'p6'),
-(36, 'p7');
+INSERT INTO `classes` (`id`, `class_name`, `prefix`, `LEVEL`) VALUES
+(30, 'Primary One', 'P.1', 'Lower Primary'),
+(42, 'Primary Two', 'P.2', 'Lower Primary'),
+(43, 'Primary Three', 'P.3', 'Lower Primary'),
+(44, 'Primary Four', 'P.4', 'Lower Primary'),
+(45, 'Primary Five', 'P.5', 'Upper Primary'),
+(46, 'Primary Six', 'P.6', 'Upper Primary'),
+(47, 'Primary Seven', 'P.7', 'Upper Primary');
 
 -- --------------------------------------------------------
 
@@ -62,12 +64,38 @@ CREATE TABLE `class_subjects` (
 --
 
 INSERT INTO `class_subjects` (`id`, `class_id`, `subject_id`) VALUES
-(56, 36, 2),
-(57, 36, 3),
-(58, 36, 4),
-(59, 36, 5),
-(60, 36, 8),
-(61, 36, 7);
+(99, 30, 15),
+(100, 30, 14),
+(101, 30, 20),
+(102, 30, 21),
+(103, 30, 16),
+(104, 30, 13),
+(105, 42, 16),
+(106, 42, 20),
+(107, 42, 21),
+(108, 42, 22),
+(109, 42, 19),
+(110, 42, 15),
+(111, 42, 14),
+(112, 43, 19),
+(113, 43, 16),
+(114, 43, 22),
+(115, 43, 21),
+(116, 43, 20),
+(117, 47, 16),
+(118, 47, 17),
+(119, 47, 18),
+(120, 47, 19),
+(121, 46, 16),
+(122, 46, 17),
+(123, 46, 18),
+(124, 46, 19),
+(125, 46, 22),
+(126, 30, 17),
+(127, 42, 13),
+(128, 44, 22),
+(129, 44, 17),
+(130, 44, 18);
 
 -- --------------------------------------------------------
 
@@ -88,9 +116,14 @@ CREATE TABLE `exams` (
 --
 
 INSERT INTO `exams` (`exam_id`, `exam_name`, `term_id`, `academic_year`, `class_id`) VALUES
-(19, 'mock', 8, 2025, 36),
-(20, 'b.o.t', 8, 2025, 36),
-(21, 'm.o.t', 8, 2025, 36);
+(42, 'b.o.t', 8, 2025, 30),
+(43, 'm.o.t', 8, 2025, 30),
+(46, 'b.o.t', 12, 2025, 42),
+(47, 'b.o.t', 12, 2025, 43),
+(48, 'b.o.t', 12, 2025, 44),
+(49, 'b.o.t', 12, 2025, 45),
+(50, 'b.o.t', 12, 2025, 46),
+(51, 'b.o.t', 12, 2025, 47);
 
 -- --------------------------------------------------------
 
@@ -140,42 +173,15 @@ CREATE TABLE `marks` (
 --
 
 INSERT INTO `marks` (`mark_id`, `student_id`, `exam_id`, `subject_id`, `score`) VALUES
-(146, 24, 19, 7, 100),
-(147, 24, 19, 4, 100),
-(148, 24, 19, 3, 100),
-(149, 24, 19, 2, 100),
-(150, 24, 19, 5, 100),
-(151, 24, 19, 8, 100),
-(152, 24, 20, 7, 50),
-(153, 24, 20, 4, 50),
-(154, 24, 20, 3, 50),
-(155, 24, 20, 2, 50),
-(156, 24, 20, 5, 50),
-(157, 24, 20, 8, 50),
-(158, 24, 21, 7, 50),
-(159, 24, 21, 4, 50),
-(160, 24, 21, 3, 50),
-(161, 24, 21, 2, 50),
-(162, 24, 21, 5, 50),
-(163, 24, 21, 8, 50),
-(164, 25, 20, 7, 87),
-(165, 25, 20, 4, 78),
-(166, 25, 20, 3, 67),
-(167, 25, 20, 2, 97),
-(168, 25, 20, 5, 56),
-(169, 25, 20, 8, 32),
-(170, 25, 21, 7, 78),
-(171, 25, 21, 4, 89),
-(172, 25, 21, 3, 76),
-(173, 25, 21, 2, 56),
-(174, 25, 21, 5, 89),
-(175, 25, 21, 8, 67),
-(176, 25, 19, 7, 88),
-(177, 25, 19, 4, 55),
-(178, 25, 19, 3, 67),
-(179, 25, 19, 2, 54),
-(180, 25, 19, 5, 67),
-(181, 25, 19, 8, 87);
+(1370, 320, 42, 13, 67),
+(1371, 320, 42, 15, 29),
+(1372, 320, 42, 14, 50),
+(1376, 320, 43, 13, 90),
+(1377, 320, 43, 15, 90),
+(1378, 320, 43, 14, 90),
+(1388, 320, 43, 20, 45),
+(1389, 320, 43, 21, 65),
+(1390, 320, 43, 16, 65);
 
 -- --------------------------------------------------------
 
@@ -196,6 +202,30 @@ CREATE TABLE `positions` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `school_profile`
+--
+
+CREATE TABLE `school_profile` (
+  `profile_id` int(11) NOT NULL,
+  `school_name` varchar(255) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `phone_1` varchar(255) DEFAULT NULL,
+  `phone_2` int(11) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `motto` varchar(255) DEFAULT NULL,
+  `profile_image` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `school_profile`
+--
+
+INSERT INTO `school_profile` (`profile_id`, `school_name`, `address`, `phone_1`, `phone_2`, `email`, `motto`, `profile_image`) VALUES
+(4, 'st elisha', 'bukomansimbi', '0744683027/0700510546', 45, 'katojkalemba@gmail.com', 'slow but sure', 'img/stdent_image/school_logo_1757408816.png');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `streams`
 --
 
@@ -210,11 +240,13 @@ CREATE TABLE `streams` (
 --
 
 INSERT INTO `streams` (`id`, `class_id`, `stream_name`) VALUES
-(14, 30, 'active'),
-(15, 30, 'brilliant'),
-(16, 31, 'active'),
-(17, 31, 'brilliant'),
-(18, 36, 'active');
+(25, 30, 'main'),
+(29, 42, 'MAIN'),
+(30, 43, 'MAIN'),
+(31, 44, 'MAIN'),
+(32, 45, 'MAIN'),
+(33, 46, 'MAIN'),
+(34, 47, 'MAIN');
 
 -- --------------------------------------------------------
 
@@ -232,16 +264,16 @@ CREATE TABLE `students` (
   `class_id` int(11) DEFAULT NULL,
   `stream_id` int(11) DEFAULT NULL,
   `image` varchar(255) DEFAULT NULL,
-  `status` enum('day','boarding') DEFAULT NULL
+  `status` enum('day','boarding') DEFAULT NULL,
+  `level` varchar(20) DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `students`
 --
 
-INSERT INTO `students` (`student_id`, `first_name`, `last_name`, `gender`, `dob`, `LIN`, `class_id`, `stream_id`, `image`, `status`) VALUES
-(24, 'nalubega', 'angel', 'female', '2019-03-04', '535TETEJD', 36, 18, 'student_1757148677.jpg', 'day'),
-(25, 'waswa', 'ssenkima abdul', 'male', '2010-12-12', '233eerr', 36, 18, '', 'day');
+INSERT INTO `students` (`student_id`, `first_name`, `last_name`, `gender`, `dob`, `LIN`, `class_id`, `stream_id`, `image`, `status`, `level`) VALUES
+(320, 'NAGAYI', 'JOSEPHINE', 'FEMALE', '2025-10-17', '9900119653', 30, 25, '', 'day', 'active');
 
 -- --------------------------------------------------------
 
@@ -259,18 +291,6 @@ CREATE TABLE `student_comments` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `student_comments`
---
-
-INSERT INTO `student_comments` (`comment_id`, `student_id`, `exam_id`, `class_teacher_comment`, `head_teacher_comment`, `created_at`, `updated_at`) VALUES
-(10, 24, 19, NULL, 'Great', '2025-09-06 12:36:36', '2025-09-06 13:10:54'),
-(11, 24, 20, NULL, 'Great', '2025-09-06 12:36:37', '2025-09-06 13:10:54'),
-(12, 24, 21, NULL, 'Great', '2025-09-06 12:36:37', '2025-09-06 13:10:54'),
-(13, 25, 19, NULL, 'much effort needed', '2025-09-06 13:10:54', '2025-09-06 13:10:54'),
-(14, 25, 20, NULL, 'much effort needed', '2025-09-06 13:10:54', '2025-09-06 13:10:54'),
-(15, 25, 21, NULL, 'much effort needed', '2025-09-06 13:10:54', '2025-09-06 13:10:54');
-
 -- --------------------------------------------------------
 
 --
@@ -287,16 +307,16 @@ CREATE TABLE `subjects` (
 --
 
 INSERT INTO `subjects` (`subject_id`, `subject_name`) VALUES
-(2, 'science'),
-(3, 'mathematics'),
-(4, 'english'),
-(5, 'social studies'),
-(6, 'religious education'),
-(7, 'computer application'),
-(8, 'spiritual formations'),
-(9, 'literacy 1'),
-(10, 'literacy 2'),
-(11, 'luganda');
+(13, 'LUGANDA'),
+(14, 'WRITING'),
+(15, 'READING'),
+(16, 'MATHEMATICS'),
+(17, 'SOCIAL STUDIES'),
+(18, 'SCIENCE'),
+(19, 'ENGLISH'),
+(20, 'LITERACY I'),
+(21, 'LITERACY II'),
+(22, 'COMPUTER APPLICATION');
 
 -- --------------------------------------------------------
 
@@ -316,7 +336,9 @@ CREATE TABLE `teacher_assignments` (
 --
 
 INSERT INTO `teacher_assignments` (`id`, `user_id`, `class_id`, `stream_id`) VALUES
-(10, 15, 36, 18);
+(16, 15, 30, 25),
+(18, 16, 44, 31),
+(19, 17, 44, 31);
 
 -- --------------------------------------------------------
 
@@ -330,20 +352,18 @@ CREATE TABLE `teacher_subject_assignments` (
   `class_id` int(11) DEFAULT NULL,
   `stream_id` int(11) DEFAULT NULL,
   `subject_id` int(11) DEFAULT NULL,
-  `initials` varchar(255) DEFAULT NULL
+  `initials` varchar(255) DEFAULT NULL,
+  `term_id` int(11) NOT NULL,
+  `academic_year` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `teacher_subject_assignments`
 --
 
-INSERT INTO `teacher_subject_assignments` (`id`, `teacher_id`, `class_id`, `stream_id`, `subject_id`, `initials`) VALUES
-(13, 15, 36, 18, 7, 'NO'),
-(14, 15, 36, 18, 4, 'NO'),
-(15, 4, 36, 18, 3, 'KJK'),
-(16, 4, 36, 18, 2, 'KJK'),
-(17, 4, 36, 18, 5, 'KJK'),
-(18, 15, 36, 18, 8, 'NO');
+INSERT INTO `teacher_subject_assignments` (`id`, `teacher_id`, `class_id`, `stream_id`, `subject_id`, `initials`, `term_id`, `academic_year`) VALUES
+(28, 15, 30, 25, 13, 'NO', 8, 2025),
+(35, 4, 30, 25, 15, NULL, 8, 2025);
 
 -- --------------------------------------------------------
 
@@ -361,9 +381,26 @@ CREATE TABLE `terms` (
 --
 
 INSERT INTO `terms` (`term_id`, `term_name`) VALUES
-(8, 'term 1'),
-(11, 'term 2'),
-(12, 'term 3');
+(8, 'Term 1'),
+(11, 'Term 2'),
+(12, 'Term 3');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `term_info`
+--
+
+CREATE TABLE `term_info` (
+  `info_id` int(11) NOT NULL,
+  `class_id` int(11) DEFAULT NULL,
+  `term_id` int(11) DEFAULT NULL,
+  `academic_year` int(11) DEFAULT NULL,
+  `term_end` date DEFAULT NULL,
+  `next_start` date DEFAULT NULL,
+  `fees_day` decimal(10,2) DEFAULT NULL,
+  `fees_boarding` decimal(10,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -386,7 +423,20 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`user_id`, `fullname`, `username`, `password`, `role`, `is_deleted`) VALUES
 (4, 'kato james kalemba', 'katojkalemba', '$2y$10$nwdGfpcMH27e56BTZd1m/e9T8XAkOiq7kAaPnybjJFvLQDE6mICQ2', 'admin', 0),
-(15, 'namugga oliver', 'noliver', '$2y$10$0LvZg1271EfQXGWtUuEuOeD0x5RMNAb7zsnqaT9N0jJYvX6KBcgiu', 'class_teacher', 0);
+(15, 'namugga oliver', 'noliver', '$2y$10$0LvZg1271EfQXGWtUuEuOeD0x5RMNAb7zsnqaT9N0jJYvX6KBcgiu', 'class_teacher', 0),
+(16, 'kassa john', 'kjohn', '$2y$10$Faor2YZwe/titYkwbs0Ev.gylsez1DW7J4P/iynghWRC4vlNYqcOy', 'class_teacher', 0),
+(17, 'mirugwe alex', 'malex', '$2y$10$Kg783wNDAZHEnnchKcDLj.LJMDlfsQ.wt6h9vuJnvOAk.PaCsSIse', 'class_teacher', 0),
+(18, 'ndawula henry', 'nhenry', '$2y$10$X1O9ifDCU3LaW7qVOHSfSe9a4OYBPqR9kKbI/ywvsN7VSOMQOL9Se', 'teacher', 0),
+(19, 'john doe', 'johndoe', '$2y$10$fXg12ZQcqPv8SYCok1iMae008q1jyQw9ile6A3XS5p5bkhxe4jNwq', 'teacher', 0),
+(20, 'Donna Roach', 'rogoqaxe', '$2y$10$FcNIvlFyuqdl8OSyaZf1tOP3DhY52Yn3S2XB9PltykXHHRigar312', 'admin', 0),
+(21, 'Cheyenne Knapp', 'hucanylix', '$2y$10$RjQr1bdDjERwYU2CyEXqreh6DeUu0YdotL6AElOFnDoqsi/Wu/2hO', 'class_teacher', 0),
+(22, 'Adam Gamble', 'dyxowal', '$2y$10$mlhTq4W78aoWh2Nn.V21ee9funIxDieZcy0Otc.z1TH/5WbFSXUpy', 'admin', 0),
+(23, 'Joelle Myers', 'gybakyc', '$2y$10$ZRuQfTwIiUTWJnfUP0SZeOzIrsFdCHjh6i6VCRCUNXClTOmXk6SRi', 'admin', 0),
+(24, 'Norman Horne', 'xekejovil', '$2y$10$F7FWs1rPC/p4hT/SocHHju5LPHsm5QwxvKOYuzCOFJAwW7gvYYfJq', 'class_teacher', 0),
+(25, 'Xandra Glenn', 'wegeqezog', '$2y$10$oE8h1UrMZj6eE7TCzqJ.k.otVtq6XpJVPSISz6WXl1Y6wTWlKKFfi', 'teacher', 0),
+(26, 'Byron Dawson', 'sikix', '$2y$10$HKkt8Uf5q9pl2OqO3laIz.t6ibUdjAjwR3p7xdNAio4X6ofCGEK8C', 'admin', 0),
+(27, 'matovu vincent', 'vmatovu', '$2y$10$8dlCXn7vUS2aVILaIvl2qelX7z8FuH56NcErcDe/Qa7l6zuv2y5aO', 'admin', 0),
+(28, 'NAGAYI JOSEPHINE', 'njosephine', '$2y$10$AqNd4CViNAIFV8iXdfIkHOvm4d3HNL1pHUE38b1MMs5YEEMqynukW', 'teacher', 0);
 
 --
 -- Indexes for dumped tables
@@ -436,6 +486,12 @@ ALTER TABLE `positions`
   ADD PRIMARY KEY (`position_id`),
   ADD KEY `student_id` (`student_id`),
   ADD KEY `exam_id` (`exam_id`);
+
+--
+-- Indexes for table `school_profile`
+--
+ALTER TABLE `school_profile`
+  ADD PRIMARY KEY (`profile_id`);
 
 --
 -- Indexes for table `streams`
@@ -492,6 +548,14 @@ ALTER TABLE `terms`
   ADD PRIMARY KEY (`term_id`);
 
 --
+-- Indexes for table `term_info`
+--
+ALTER TABLE `term_info`
+  ADD PRIMARY KEY (`info_id`),
+  ADD KEY `class_id` (`class_id`),
+  ADD KEY `term_id` (`term_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -505,19 +569,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `classes`
 --
 ALTER TABLE `classes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `class_subjects`
 --
 ALTER TABLE `class_subjects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT for table `exams`
 --
 ALTER TABLE `exams`
-  MODIFY `exam_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `exam_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `grading_scale`
@@ -529,43 +593,49 @@ ALTER TABLE `grading_scale`
 -- AUTO_INCREMENT for table `marks`
 --
 ALTER TABLE `marks`
-  MODIFY `mark_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
+  MODIFY `mark_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1391;
+
+--
+-- AUTO_INCREMENT for table `school_profile`
+--
+ALTER TABLE `school_profile`
+  MODIFY `profile_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `streams`
 --
 ALTER TABLE `streams`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=322;
 
 --
 -- AUTO_INCREMENT for table `student_comments`
 --
 ALTER TABLE `student_comments`
-  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `subjects`
 --
 ALTER TABLE `subjects`
-  MODIFY `subject_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `subject_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `teacher_assignments`
 --
 ALTER TABLE `teacher_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `teacher_subject_assignments`
 --
 ALTER TABLE `teacher_subject_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT for table `terms`
@@ -574,10 +644,16 @@ ALTER TABLE `terms`
   MODIFY `term_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
+-- AUTO_INCREMENT for table `term_info`
+--
+ALTER TABLE `term_info`
+  MODIFY `info_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- Constraints for dumped tables
@@ -648,6 +724,13 @@ ALTER TABLE `teacher_subject_assignments`
   ADD CONSTRAINT `teacher_subject_assignments_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`),
   ADD CONSTRAINT `teacher_subject_assignments_ibfk_3` FOREIGN KEY (`stream_id`) REFERENCES `streams` (`id`),
   ADD CONSTRAINT `teacher_subject_assignments_ibfk_4` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`subject_id`);
+
+--
+-- Constraints for table `term_info`
+--
+ALTER TABLE `term_info`
+  ADD CONSTRAINT `term_info_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`),
+  ADD CONSTRAINT `term_info_ibfk_2` FOREIGN KEY (`term_id`) REFERENCES `terms` (`term_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
