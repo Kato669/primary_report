@@ -1,5 +1,5 @@
 :root{
-    --primary-color: #001870;
+    --primary-color: #2f3542;
     --secondary-color: #0095486c;
     --tertiary-color: #430d0d;
     --border-color: #f1f1f1;
@@ -18,6 +18,8 @@ body{
 .icon-bar{
     cursor: pointer;
 }
+
+/* ── TOP NAVBAR ── */
 main{
     width: 100%;
     color: #fff;
@@ -29,7 +31,7 @@ main{
     position: fixed;
     left: 0;
     top: 0;
-    z-index: 1;
+    z-index: 100;
 }
 .name{
     font-size: 18px;
@@ -40,29 +42,36 @@ main{
 .name.active{
     left: 3%;
 }
-/* left bar */
+
+/* ── SIDEBAR (desktop default) ── */
 .left-bar {
-    height: auto;
+    position: fixed;
+    top: 40px;
+    left: 0;
+    height: calc(100vh - 40px);
     width: 18%;
     background-color: var(--primary-color);
     transition: width 0.3s ease;
     padding-top: 5px;
     overflow-y: auto;
-    margin-top: 40px;
-    overflow-y: hidden;
+    /* overflow-x: hidden; */
+    z-index: 99;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
 }
-
+.left-bar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
 .left-bar.active {
     width: 3%;
 }
-
 .left-bar .side-text{
     color: var(--border-color);
 }
-.left-bar .side-text.active{
+/* .left-bar .side-text.active{
     display: none;
-}
-
+} */
 .left-bar a {
     display: block;
     padding: 10px 12px;
@@ -71,9 +80,8 @@ main{
     color: var(--border-color);
     text-decoration: none;
     transition: background-color 0.3s ease;
-    border-bottom: 1px solid var(--background-color) ;
+    border-bottom: 1px solid var(--background-color);
 }
-
 .left-bar a:hover {
     background-color: var(--background-color);
 }
@@ -83,165 +91,179 @@ main{
     border-left: 4px solid var(--hover-color);
     width: 100%;
 }
-
 .left-bar span{
     padding-left: 6px;
 }
 
-/* right bar */
-.right-bar{
+/* ── MAIN CONTENT (desktop default) ── */
+.right-bar {
     margin-top: 40px;
-    height: 100vh;
+    margin-left: 18%;
+    min-height: calc(100vh - 40px);
     width: 82%;
-    transition: all 1s;
-    /* color: var(--border-color); */
+    transition: all 0.3s ease;
     padding: 16px;
 }
-.right-bar.active{
+.right-bar.active {
+    margin-left: 3%;
     width: 97%;
 }
+
+/* ── SIDEBAR TOGGLE ── */
 .toggleBar{
     display: none;
     cursor: pointer;
 }
 
-/* Responsive styles */
+/* ── TABLET (≤ 992px) ── */
 @media screen and (max-width: 992px) {
-    .left-bar .side-text{
-    display: none;
+    .left-bar .side-text {
+        color: #fff
     }
-    .toggleBar{
+    .toggleBar {
         display: none;
     }
     .left-bar {
         width: 8%;
     }
+    .left-bar.active {
+        width: 0;
+        overflow: hidden;
+    }
     .right-bar {
+        margin-left: 8%;   /* must match left-bar width */
         width: 92%;
+    }
+    .right-bar.active {
+        margin-left: 0;
+        width: 100%;
     }
     .name {
         left: 8%;
     }
     .name.active {
-        left: 2%;
+        left: 1%;
     }
-    .left-bar.active {
-        width: 0;
-    }
-    .right-bar.active {
-        width: 100%;
-    }
-    main{
+    main {
         padding: 5px 0;
     }
 }
 
+/* ── MOBILE (≤ 768px) ── */
 @media screen and (max-width: 768px) {
-    .toggleBar{
-        display: none;
-    }
     main {
         height: 48px;
-        font-size: 16px;
     }
     .left-bar {
-        position: fixed;
-        left: 0;
-        top: 40px;
+        top: 48px;
         width: 60vw;
         max-width: 260px;
-        z-index: 2;
-        margin-top: 0;
-        height: calc(100vh - 40px);
-        box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
+        height: calc(100vh - 48px);
+        box-shadow: 2px 0 8px rgba(0,0,0,0.2);
         transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1050;
     }
-    .left-bar.active {
+    .left-bar.active,
+    .left-bar.show {
         transform: translateX(0);
         width: 60vw;
     }
     .right-bar {
-        width: 100%;
+        margin-left: 0 !important;
+        width: 100% !important;
         margin-top: 48px;
-        padding: 8px;
+        padding: 10px;
     }
     .toggleBar {
         display: block;
         position: absolute;
         left: 12px;
-        top: 8px;
-        z-index: 3;
+        top: 12px;
+        z-index: 200;
+        color: #fff;
     }
-    .name, .name.active {
+    .name,
+    .name.active {
         position: static;
         left: unset;
         margin-left: 48px;
+        font-size: 16px;
+    }
+    /* overlay when sidebar open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 48px;
+        left: 0;
+        width: 100vw;
+        height: calc(100vh - 48px);
+        background: rgba(0,0,0,0.4);
+        z-index: 1049;
+    }
+    .sidebar-overlay.show {
+        display: block;
     }
 }
 
+/* ── SMALL MOBILE (≤ 576px) ── */
 @media screen and (max-width: 576px) {
-    /* .dashboard{
-        display: flex;
-    } */
-    .toggleBar{
-        display: block;
-        
-    }
-    .icon-bar{
+    .icon-bar {
         display: none;
     }
     main {
-        height: 90px;
-        font-size: 15px;
+        height: 56px;
     }
     .left-bar {
+        top: 56px;
         width: 80vw;
-        max-width: 220px;
-        padding-top: 0;
+        max-width: 240px;
+        height: calc(100vh - 56px);
         font-size: 14px;
         transform: translateX(-100%);
-        margin-top: 90px;
-        margin-bottom: 30px;
     }
+    .left-bar.active,
     .left-bar.show {
         transform: translateX(0);
-        width: 80vw;
     }
     .right-bar {
-        width: 100%;
-        margin-top: 90px;
-        padding: 4px;
+        margin-top: 56px !important;
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 8px;
         font-size: 14px;
-        margin-bottom: 30px;
     }
     .toggleBar {
         display: block;
         position: absolute;
         left: 10px;
-        top: 10px;
-        z-index: 3;
+        top: 14px;
+        z-index: 200;
+        color: #fff;
     }
-    .name, .name.active {
+    .name,
+    .name.active {
         position: static;
         left: unset;
-        margin-left: 48px;
-        font-size: 15px;
+        margin-left: 44px;
+        font-size: 14px;
+    }
+    .sidebar-overlay {
+        top: 56px;
+        height: calc(100vh - 56px);
     }
 }
 
-/* working on footer */
-.hidden{
+/* ── FOOTER ── */
+.hidden {
     margin: 30px 0;
     height: 10px;
 }
-
-.footer{ 
-    background-color: var(--primary-color); 
-    
+.footer {
+    background-color: var(--primary-color);
 }
 
-/* styling table */
-table th, table td{
+/* ── TABLES ── */
+table th, table td {
     color: var(--background-color);
 }

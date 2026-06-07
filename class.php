@@ -5,14 +5,14 @@
 ?>
 <div class="container-fluid">
     <!-- button to add class -->
-    <!-- <div class="row g-0 my-2">
+    <div class="row g-0 my-2">
         <div class="col-lg-4 col-md-4 col-sm-12">
-            <a href="addClass.php" class="btn text-capitalize text-white btn-success fs-6">
+            <a href="<?php echo SITEURL ?>addClass.php" class="btn text-capitalize text-white btn-success fs-6">
                 add class
                 <i class="fa-solid fa-pen-to-square"></i>
             </a>
         </div>
-    </div> -->
+    </div>
     <!-- successfully submision -->
      <?php
      if(isset($_SESSION['added_class'])){

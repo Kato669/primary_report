@@ -1,4 +1,7 @@
-<?php include("partials/header.php"); ?>
+<?php 
+   
+    include("partials/header.php"); 
+?>
 <?php
     if(isset($_SESSION['delete_exam'])){
         echo '
@@ -44,13 +47,13 @@
                     <tbody>
                         <?php
                         $fetch = mysqli_query($conn, "
-                            SELECT c.id AS class_id, c.class_name, e.exam_name, v.visible
+                            SELECT c.id AS class_id, c.class_name, e.exam_name, MAX(v.visible) AS visible
                             FROM exams e
                             JOIN classes c ON e.class_id = c.id
-                            LEFT JOIN exam_visibility v 
-                                ON v.class_id = e.class_id 
-                                AND LOWER(v.exam_type) = LOWER(e.exam_name)
-                            GROUP BY c.class_name, e.exam_name
+                            LEFT JOIN exam_visibility v
+                                ON v.class_id = e.class_id
+                                AND LOWER(v.exam_type) COLLATE utf8mb4_0900_ai_ci = LOWER(e.exam_name)
+                            GROUP BY c.id, c.class_name, e.exam_name
                             ORDER BY c.id;
                         ");
 

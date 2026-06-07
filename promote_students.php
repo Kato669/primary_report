@@ -64,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['promote_students'])) 
                 <label class="form-label">Class:</label>
                 <input type="text" class="form-control" value="<?= htmlspecialchars($class_name) ?>" readonly>
             </div>
+            <div class="table-responsive">
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -104,7 +105,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['promote_students'])) 
                     ?>
                 </tbody>
             </table>
-            <button type="submit" name="promote_students" class="btn btn-primary">Promote Available Students</button>
+            </div><!-- /.table-responsive -->
+            <div class="d-grid d-md-block mt-2">
+              <button type="submit" name="promote_students" class="btn btn-primary">Promote Available Students</button>
+            </div>
         </form>
     <?php elseif ($role === 'admin'): ?>
         <form method="get" class="mb-3">
@@ -124,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['promote_students'])) 
         <?php if (isset($_GET['class_id']) && $_GET['class_id']): ?>
             <form method="post">
                 <input type="hidden" name="class_id" value="<?= $_GET['class_id'] ?>">
+                <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -164,7 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['promote_students'])) 
                         ?>
                     </tbody>
                 </table>
-                <button type="submit" name="promote_students" class="btn btn-primary">Promote Available Students</button>
+                </div><!-- /.table-responsive -->
+                <div class="d-grid d-md-block mt-2">
+                  <button type="submit" name="promote_students" class="btn btn-primary">Promote Available Students</button>
+                </div>
             </form>
         <?php endif; ?>
     <?php endif; ?>

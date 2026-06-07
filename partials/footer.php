@@ -1,6 +1,4 @@
-        </div>
-      </div>
-    </div>
+    </div><!-- /.right-bar -->
     <div class="hidden"></div>
     <?php
   // Show the marquee footer only on the login page and the index (dashboard) page
@@ -9,9 +7,9 @@
     ?>
     <div class="container-fluid footer mt-5">
       <div class="row">
-        <div class="col-lg-12 text-center mb-0 py-2" style="background-color: #001870;">
+        <!-- <div class="col-lg-12 text-center mb-0 py-2" style="background-color: #001870;">
             <marquee behavior="alternate" scrollamount="3" style="color: white;">© <?php echo date('Y'); ?> EduMaster Uganda. All Rights Reserved.</marquee>
-        </div>
+        </div> -->
       </div>
     </div>
     <?php endif; ?>

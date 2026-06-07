@@ -81,6 +81,11 @@ if(isset($_POST['addteacher'])){
 ?>
 
 <div class="container-fluid my-3">
+    <div class="mb-2">
+        <a href="<?php echo SITEURL ?>teacherSubject.php" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to Staff Load
+        </a>
+    </div>
     <div class="row">
         <h3 class="text-capitalize fs-6 text-dark py-2">Enter teachers and subjects they teach</h3>
         <div class="col-lg-6 col-sm-12 col-md-12 shadow rounded p-3">

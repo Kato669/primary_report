@@ -1,5 +1,6 @@
 <?php
 ob_start();
+  
 include("partials/header.php");
 
 // Only allow admin

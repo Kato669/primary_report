@@ -1,6 +1,7 @@
-<?php 
+<?php
 ob_start();
 include("partials/header.php");
+include("partials/adminOnly.php");
 
 if (isset($_POST['addClass'])) {
     $class_id = intval($_POST['class'] ?? 0);
@@ -39,6 +40,11 @@ if (isset($_POST['addClass'])) {
 ?>
 
 <div class="container-fluid my-3">
+    <div class="mb-2">
+        <a href="<?php echo SITEURL ?>class_subjects.php" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to Class Subjects
+        </a>
+    </div>
     <div class="row">
         <div class="col-lg-6 col-sm-12 col-md-12 shadow rounded p-5">
             <h3 class="text-capitalize fs-6 text-dark py-2">Choose class and subjects taught in that class</h3>

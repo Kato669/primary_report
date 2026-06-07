@@ -91,7 +91,8 @@ if (isset($_POST['addstdnt'])) {
                     class_id = $classID,
                     stream_id = $streamID,
                     status = '$status',
-                    image = '$image_name'
+                    image = '$image_name',
+                    level = 'active'
                 ";
                 if (mysqli_query($conn, $insert_data)) {
                     header("Location: " . $_SERVER['PHP_SELF'] . "?success=1");
@@ -111,6 +112,11 @@ $autoLIN = generateLIN($conn);
 ?>
 
 <div class="container-fluid my-3">
+    <div class="mb-2">
+        <a href="<?php echo SITEURL ?>students.php" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to Students
+        </a>
+    </div>
     <div class="row rounded shadow">
         <div class="col-lg-6 col-sm-12 p-3">
             <form method="POST" action="" enctype="multipart/form-data">

@@ -1,4 +1,7 @@
-<?php include("partials/header.php"); ?>
+<?php 
+  include("partials/header.php");
+  global $conn;
+?>
 <?php
 // if(isset($_SESSION['must_login'])){
 //   echo '
@@ -97,7 +100,7 @@ if($res){
 <div class="container-fluid my-4">
   <div class="row g-3">
     <!-- Total Students Card -->
-    <div class="col-lg-3 col-sm-12 col-md-12">
+    <div class="col-12 col-sm-6 col-xl-3">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-primary text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="card-number fs-4 fw-bold"><?php echo $stdnts ?></span>
@@ -111,7 +114,7 @@ if($res){
     </div>
 
     <!-- Total teachers Card -->
-    <div class="col-lg-3 col-sm-12 col-md-12">
+    <div class="col-12 col-sm-6 col-xl-3">
       <a href="<?php echo SITEURL ?>users.php" class="dashboard-card text-decoration-none p-3 bg-success text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="card-number fs-4 fw-bold"><?php echo $count ?></span>
@@ -125,7 +128,7 @@ if($res){
     </div>
 
     <!-- Total female Card -->
-    <div class="col-lg-3 col-sm-12 col-md-12">
+    <div class="col-12 col-sm-6 col-xl-3">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-secondary text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="card-number fs-4 fw-bold"><?php echo $femaleNum ?></span>
@@ -139,7 +142,7 @@ if($res){
     </div>
 
     <!-- Total male Card -->
-    <div class="col-lg-3 col-sm-12 col-md-12">
+    <div class="col-12 col-sm-6 col-xl-3">
       <a href="<?php echo SITEURL ?>students.php" class="dashboard-card text-decoration-none p-3 bg-danger text-white rounded shadow-sm d-flex flex-column justify-content-between">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="card-number fs-4 fw-bold"><?php echo $maleNum ?></span>
@@ -156,33 +159,36 @@ if($res){
 
 <!-- Dynamic Chart -->
 <div class="container-fluid my-4">
-  <div class="row">
-    <div class="col-6">
-      <div class="col-lg-12 col-sm-12 col-md-12">
-      <a href="" class="dashboard-card text-decoration-none p-3 bg-dark text-white rounded shadow-sm d-flex flex-column justify-content-between">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="card-number fs-4 fw-bold"><?php echo $dayStu ?></span>
-          <span class="card-icon fs-3"><i class="fa-solid fa-bicycle"></i></span>
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="row g-3">
+        <div class="col-12">
+          <a href="" class="dashboard-card text-decoration-none p-3 bg-dark text-white rounded shadow-sm d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="card-number fs-4 fw-bold"><?php echo $dayStu ?></span>
+              <span class="card-icon fs-3"><i class="fa-solid fa-bicycle"></i></span>
+            </div>
+            <span class="card-label text-white text-uppercase small">day Students</span>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-uppercase">day</span>
+            </div>
+          </a>
         </div>
-        <span class="card-label text-white text-uppercase small">day Students</span>
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="text-uppercase">day</span>
+        <div class="col-12">
+          <a href="" class="dashboard-card text-decoration-none p-3 bg-success text-white rounded shadow-sm d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="card-number fs-4 fw-bold"><?php echo $boardingStu ?></span>
+              <span class="card-icon fs-3"><i class="fa-solid fa-bed"></i></span>
+            </div>
+            <span class="card-label text-white text-uppercase small">boarding Students</span>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-uppercase">boarding</span>
+            </div>
+          </a>
         </div>
-      </a>
-      <br>
-      <a href="" class="dashboard-card text-decoration-none p-3 bg-success text-white rounded shadow-sm d-flex flex-column justify-content-between">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="card-number fs-4 fw-bold"><?php echo $boardingStu ?></span>
-          <span class="card-icon fs-3"><i class="fa-solid fa-bed"></i></span>
-        </div>
-        <span class="card-label text-white text-uppercase small">boarding Students</span>
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="text-uppercase">boarding</span>
-        </div>
-      </a>
+      </div>
     </div>
-    </div>
-    <div class="col-lg-6 col-12 bg-white py-3 rounded shadow-sm">
+    <div class="col-12 col-md-6 bg-white py-3 rounded shadow-sm">
       <div class="h3 fs-5 text-uppercase text-dark">STUDENTS PER CLASS</div>
       <canvas id="studentsChart" style="max-height: 350px;"></canvas>
     </div>

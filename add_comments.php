@@ -119,6 +119,11 @@ $head_teacher_comments = [
 ?>
 
 <div class="container my-4">
+    <div class="mb-2 d-flex gap-2">
+        <a href="reports.php" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to Reports
+        </a>
+    </div>
     <h3 class="text-capitalize fs-6 text-dark mb-3">
         <?php echo $_SESSION['role']==='admin' ? "Enter Head Teacher Comments (Batch)" : "Enter Class Teacher Comments "; ?>
     </h3>
@@ -216,6 +221,7 @@ $head_teacher_comments = [
     <?php endif; ?>
 
     <form method="POST" action="">
+      <div class="table-responsive">
         <table class="table table-bordered">
             <thead class="table-success">
                 <tr>
@@ -283,8 +289,11 @@ $head_teacher_comments = [
                 <?php endwhile; ?>
             </tbody>
         </table>
+      </div><!-- /.table-responsive -->
 
-        <button type="submit" name="save_comment" class="btn btn-primary text-capitalize">Save All Comments</button>
+        <div class="d-grid d-md-block mt-3">
+          <button type="submit" name="save_comment" class="btn btn-primary text-capitalize">Save All Comments</button>
+        </div>
     </form>
 </div>
 

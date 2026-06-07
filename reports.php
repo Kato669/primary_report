@@ -52,12 +52,12 @@ if (!$sel_class || !$sel_stream || !$sel_term || !$sel_year) {
     $streams = mysqli_query($conn, "SELECT id, stream_name FROM streams ORDER BY stream_name");
     $terms   = mysqli_query($conn, "SELECT term_id, term_name FROM terms ORDER BY term_id");
     ?>
-    <div class="container my-4">
-      <h3>Generate Reports</h3>
+    <div class="container-fluid my-4">
+      <h3 class="fs-5 fw-bold mb-3">Generate Reports</h3>
   <form method="POST">
     <div class="row g-3">
       <?php if ($role === 'admin'): ?>
-        <div class="col-md-3">
+        <div class="col-12 col-md-6 col-lg-3">
           <label class="form-label">Class</label>
           <select id="classSelect" name="class_id" class="form-select" required>
             <option value="">Choose class</option>
@@ -69,24 +69,24 @@ if (!$sel_class || !$sel_stream || !$sel_term || !$sel_year) {
           </select>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-12 col-md-6 col-lg-3">
           <label class="form-label">Stream</label>
           <select id="streamSelect" name="stream_id" class="form-select" required>
             <option value="">Choose stream</option>
           </select>
         </div>
       <?php else: ?>
-        <div class="col-md-3">
+        <div class="col-12 col-md-6 col-lg-3">
           <label class="form-label">Class</label>
           <input class="form-control" readonly value="<?php echo htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn, "SELECT class_name FROM classes WHERE id=".iint($sel_class)." LIMIT 1"))['class_name'] ?? '') ?>">
         </div>
-        <div class="col-md-3">
+        <div class="col-12 col-md-6 col-lg-3">
           <label class="form-label">Stream</label>
           <input class="form-control" readonly value="<?php echo htmlspecialchars(mysqli_fetch_assoc(mysqli_query($conn, "SELECT stream_name FROM streams WHERE id=".iint($sel_stream)." LIMIT 1"))['stream_name'] ?? '') ?>">
         </div>
       <?php endif; ?>
 
-      <div class="col-md-3">
+      <div class="col-12 col-md-6 col-lg-3">
         <label class="form-label">Term</label>
         <select name="term_id" class="form-select" required>
           <option value="">Choose term</option>
@@ -98,19 +98,19 @@ if (!$sel_class || !$sel_stream || !$sel_term || !$sel_year) {
         </select>
       </div>
 
-     <div class="col-md-3">
-      <label class="form-label">Academic Year</label>
-      <select name="academic_year" class="form-select" required>
-        <option value="" disabled <?php echo empty($sel_year) ? 'selected' : ''; ?>>Select</option>
-        <option value="2025" <?php echo ($sel_year == '2025') ? 'selected' : ''; ?>>2025</option>
-        <option value="2024" <?php echo ($sel_year == '2024') ? 'selected' : ''; ?>>2024</option>
-        <option value="2023" <?php echo ($sel_year == '2023') ? 'selected' : ''; ?>>2023</option>
-      </select>
-    </div>
+      <div class="col-12 col-md-6 col-lg-3">
+        <label class="form-label">Academic Year</label>
+        <select name="academic_year" class="form-select" required>
+          <option value="" disabled <?php echo empty($sel_year) ? 'selected' : ''; ?>>Select</option>
+          <option value="2025" <?php echo ($sel_year == '2025') ? 'selected' : ''; ?>>2025</option>
+          <option value="2024" <?php echo ($sel_year == '2024') ? 'selected' : ''; ?>>2024</option>
+          <option value="2023" <?php echo ($sel_year == '2023') ? 'selected' : ''; ?>>2023</option>
+        </select>
+      </div>
 
     </div>
 
-    <div class="mt-3">
+    <div class="mt-3 d-grid d-md-block">
       <button class="btn btn-primary" name="filter_reports">Generate All Reports</button>
     </div>
   </form>
@@ -183,7 +183,7 @@ $res = mysqli_query($conn, "
         FROM exams e
         LEFT JOIN exam_visibility v 
           ON v.class_id = e.class_id 
-          AND LOWER(v.exam_type) = LOWER(e.exam_name)
+          AND LOWER(v.exam_type) COLLATE utf8mb4_0900_ai_ci = LOWER(e.exam_name)
         WHERE e.class_id = $sel_class 
           AND e.term_id = $sel_term 
           AND e.academic_year = '$sel_year'
@@ -191,7 +191,7 @@ $res = mysqli_query($conn, "
     )
     AND s.stream_id = $sel_stream
     AND s.class_id = $sel_class
-    AND s.level = 'active'
+    AND (s.level = 'active' OR s.level IS NULL)
     ORDER BY s.first_name, s.last_name
 ");
 
@@ -232,7 +232,7 @@ $exam_q = "
     JOIN exams e ON m.exam_id = e.exam_id
     LEFT JOIN exam_visibility v 
       ON v.class_id = e.class_id 
-      AND LOWER(v.exam_type) = LOWER(e.exam_name)
+      AND LOWER(v.exam_type) COLLATE utf8mb4_0900_ai_ci = LOWER(e.exam_name)
     WHERE e.class_id = $sel_class
       AND e.term_id = $sel_term
       AND e.academic_year = '{$sel_year}'
@@ -250,7 +250,7 @@ if (empty($exam_rows)) {
 FROM exams e
 LEFT JOIN exam_visibility v 
   ON v.class_id = e.class_id 
-  AND LOWER(v.exam_type) = LOWER(e.exam_name)
+  AND LOWER(v.exam_type) COLLATE utf8mb4_0900_ai_ci = LOWER(e.exam_name)
 WHERE e.class_id = $sel_class
   AND e.term_id = $sel_term
   AND e.academic_year = '{$sel_year}'
@@ -377,14 +377,18 @@ $stream_name_display = $stream_row['stream_name'] ?? '';
 /* ---------------- render ---------------- */
 ?>
 <style>
-  .report-card{ 
-    padding:20px; 
-    /* margin:10px;  */
-    border: 2px solid #000000ff; 
-    background:#fff; 
-    position:relative; 
-    width: 90%;
-    /* margin: 50px auto 10px; */
+  .report-card{
+    padding:20px;
+    border: 2px solid #000000ff;
+    background:#fff;
+    position:relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 16px;
+    overflow-x: auto;
+  }
+  #reportCardsContainer {
+    overflow-x: auto;
   }
   table tr th, table tr td {
     border: 1px solid #000000ff !important;
@@ -507,11 +511,11 @@ $sel_print_type = $_POST['print_type'] ?? 'all';
 $sel_student = intval($_POST['student_id'] ?? 0);
 ?>
 <div class="my-3">
-  <form method="POST" class="row d-flex g-2 align-items-center justify-center w-100">
+  <form method="POST">
     <div class="container-fluid">
-      <div class="row">
+      <div class="row g-2 align-items-end">
         <input type="hidden" name="filter_reports" value="1">
-        <div class="col-auto">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
           <label class="form-label mb-0">Class</label>
           <select id="topClassSelect" name="class_id" class="form-select">
             <option value="">Choose class</option>
@@ -521,15 +525,14 @@ $sel_student = intval($_POST['student_id'] ?? 0);
           </select>
         </div>
 
-        <div class="col-auto">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
           <label class="form-label mb-0">Stream</label>
           <select id="topStreamSelect" name="stream_id" class="form-select">
             <option value="">Choose stream</option>
-            <!-- options loaded dynamically -->
           </select>
         </div>
 
-        <div class="col-auto">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
           <label class="form-label mb-0">Term</label>
           <select name="term_id" class="form-select">
             <option value="">Choose term</option>
@@ -539,18 +542,17 @@ $sel_student = intval($_POST['student_id'] ?? 0);
           </select>
         </div>
 
-       <div class="col-auto">
-  <label class="form-label mb-0">Academic Year</label>
-  <select name="academic_year" class="form-select" required style="min-width: 120px;">
-    <option value="" disabled <?php echo empty($sel_year) ? 'selected' : ''; ?>>Select</option>
-    <option value="2025" <?php echo ($sel_year == '2025') ? 'selected' : ''; ?>>2025</option>
-    <option value="2024" <?php echo ($sel_year == '2024') ? 'selected' : ''; ?>>2024</option>
-    <option value="2023" <?php echo ($sel_year == '2023') ? 'selected' : ''; ?>>2023</option>
-  </select>
-</div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
+          <label class="form-label mb-0">Academic Year</label>
+          <select name="academic_year" class="form-select" required>
+            <option value="" disabled <?php echo empty($sel_year) ? 'selected' : ''; ?>>Select</option>
+            <option value="2025" <?php echo ($sel_year == '2025') ? 'selected' : ''; ?>>2025</option>
+            <option value="2024" <?php echo ($sel_year == '2024') ? 'selected' : ''; ?>>2024</option>
+            <option value="2023" <?php echo ($sel_year == '2023') ? 'selected' : ''; ?>>2023</option>
+          </select>
+        </div>
 
-
-        <div class="col-auto">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
           <label class="form-label mb-0">Print Type</label>
           <select id="printTypeSelect" name="print_type" class="form-select">
             <option value="all" <?php echo ($sel_print_type === 'all' ? 'selected' : ''); ?>>All Students</option>
@@ -558,20 +560,19 @@ $sel_student = intval($_POST['student_id'] ?? 0);
           </select>
         </div>
 
-        <div class="col-auto" id="studentSelectContainer" style="display: <?php echo ($sel_print_type === 'one' ? 'block' : 'none'); ?>;">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-auto" id="studentSelectContainer" style="display: <?php echo ($sel_print_type === 'one' ? 'block' : 'none'); ?>;">
           <label class="form-label mb-0">Student</label>
           <select id="topStudentSelect" name="student_id" class="form-select">
             <option value="">Choose student</option>
             <?php if($sel_student && $sel_class):
-                // try to show the selected student as an option (will be replaced via AJAX on load)
                 $srow = mysqli_fetch_assoc(mysqli_query($conn, "SELECT student_id, first_name, last_name FROM students WHERE student_id=".intval($sel_student)." LIMIT 1"));
                 if($srow) echo '<option value="'.intval($srow['student_id']).'" selected>'.htmlspecialchars($srow['first_name'].' '.$srow['last_name']).'</option>';
             endif; ?>
           </select>
         </div>
 
-        <div class="col-auto mt-2">
-          <button type="submit" class="btn btn-secondary mt-2"><i class="fa fa-search me-1"></i> Search</button>
+        <div class="col-12 col-sm-auto">
+          <button type="submit" class="btn btn-secondary w-100 w-sm-auto"><i class="fa fa-search me-1"></i> Search</button>
         </div>
       </div>
     </div>
@@ -584,10 +585,13 @@ $sel_student = intval($_POST['student_id'] ?? 0);
     &nbsp; | &nbsp; YEAR: <span class="text-uppercase"><?php echo htmlspecialchars($sel_year); ?></span>
   </div>
 
-  <div class="d-flex justify-content-center mt-2">
+  <div class="d-flex justify-content-center gap-2 mt-2">
     <button class="btn btn-primary" id="printReports">
       <i class="fa fa-print"></i> Print
     </button>
+    <a href="<?php echo $_SESSION['role']==='admin' ? 'select_class_stream.php' : 'selectcomment_exam.php'; ?>" class="btn btn-outline-success">
+      <i class="fas fa-comments me-1"></i> Add Comments
+    </a>
   </div>
 </div>
 
@@ -895,43 +899,6 @@ foreach($students_stream as $sid => $stu){
         window.print();
       });
 
-// jsPDF download (handles large content better)
-document.getElementById("downloadPdf").addEventListener("click", async function () {
-    const element = document.getElementById("reportCardsContainer");
-    // Wait for all images to load
-    const images = element.querySelectorAll("img");
-    let loaded = 0;
-    if (images.length === 0) await generatePDF();
-    images.forEach(img => {
-        if (img.complete) loaded++;
-        else img.addEventListener('load', () => {
-            loaded++;
-            if (loaded === images.length) generatePDF();
-        });
-        img.addEventListener('error', () => {
-            loaded++;
-            if (loaded === images.length) generatePDF();
-        });
-    });
-    if (loaded === images.length) await generatePDF();
-
-    async function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'pt', 'a4');
-        const cards = element.querySelectorAll('.report-card');
-        let y = 0;
-        for (let i = 0; i < cards.length; i++) {
-            const canvas = await html2canvas(cards[i], { scale: 2 });
-            const imgData = canvas.toDataURL('image/png');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            if (i > 0) pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        }
-        pdf.save('Class_Report.pdf');
-    }
-});
 </script>
 
 <?php include("partials/footer.php"); ?>

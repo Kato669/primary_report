@@ -39,6 +39,11 @@
 ?>
 
 <div class="container-fluid my-3">
+    <div class="mb-2">
+        <a href="<?php echo SITEURL ?>streams.php" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to Streams
+        </a>
+    </div>
     <div class="row">
 
         <div class="col-lg-6 col-sm-12 col-md-12 shadow rounded p-5">

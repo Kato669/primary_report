@@ -1,4 +1,8 @@
-<?php include("partials/header.php"); ?>
+<?php
+ob_start();
+include("partials/header.php");
+include("partials/adminOnly.php");
+?>
 <?php 
     if (isset($_SESSION['subject_deleted'])) {
         $message = addslashes($_SESSION['subject_deleted']); // escape quotes

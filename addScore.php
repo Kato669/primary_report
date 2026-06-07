@@ -1,6 +1,10 @@
 <?php
 ob_start();
+  ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
 include("partials/header.php");
+global $conn;
 
 // ---------------- AUTH CHECK ----------------
 if (!isset($_SESSION['logged_in']) || !in_array($_SESSION['role'], ['class_teacher', 'admin', 'subject_teacher'])) {
@@ -73,7 +77,8 @@ if (isset($_POST['save_marks']) && isset($_POST['marks'])) {
         $conn->rollback();
         $_SESSION['error_msg'] = "Error: " . $e->getMessage();
     }
-    header("Location: addScore.php");
+    unset($_SESSION['exam_id'], $_SESSION['class_id'], $_SESSION['stream_id'], $_SESSION['term_id']);
+    header("Location: select_exam.php");
     exit;
 }
 
@@ -88,11 +93,11 @@ if ($res) $students = mysqli_fetch_all($res, MYSQLI_ASSOC);
 
 // ---------------- FETCH SUBJECTS ----------------
 $subjects = [];
-$subject_sql = "SELECT cs.subject_id, s.short_code 
+$subject_sql = "SELECT cs.subject_id, s.subject_name 
                 FROM class_subjects cs
                 JOIN subjects s ON cs.subject_id=s.subject_id
                 WHERE cs.class_id=$class_id
-                ORDER BY s.short_code";
+                ORDER BY s.subject_name";
 $res = mysqli_query($conn, $subject_sql);
 if ($res) $subjects = mysqli_fetch_all($res, MYSQLI_ASSOC);
 ?>
@@ -100,9 +105,14 @@ if ($res) $subjects = mysqli_fetch_all($res, MYSQLI_ASSOC);
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center py-3">
         <h3 class="text-capitalize fs-6 m-0">Declare Marks</h3>
-        <a href="?change_selection=1" class="btn btn-outline-secondary btn-sm">
-            <i class="fa fa-arrow-left me-1"></i> Change Exam/Class
-        </a>
+        <div class="d-flex gap-2">
+            <a href="addExam.php" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i> Add Exam
+            </a>
+            <a href="?change_selection=1" class="btn btn-outline-secondary btn-sm">
+                <i class="fa fa-arrow-left me-1"></i> Change Exam/Class
+            </a>
+        </div>
     </div>
 
     <!-- Display selected context -->
@@ -135,7 +145,7 @@ if ($res) $subjects = mysqli_fetch_all($res, MYSQLI_ASSOC);
                         <tr>
                             <th>Student Name</th>
                             <?php foreach ($subjects as $sub): ?>
-                                <th><?= htmlspecialchars($sub['short_code']); ?></th>
+                                <th><?= htmlspecialchars($sub['subject_name']); ?></th>
                             <?php endforeach; ?>
                         </tr>
                     </thead>

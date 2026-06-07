@@ -147,9 +147,14 @@ if (isset($_GET['student_id'])) {
 ?>
 
 <div class="container-fluid">
+        <div class="mb-2">
+            <a href="<?php echo SITEURL ?>students.php" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Back to Students
+            </a>
+        </div>
         <div class="row">
          <h3 class="text-capitalize fs-6 text-dark py-2">edit students</h3>
-            <div class="col-lg-6">
+            <div class="col-12 col-lg-6">
                 <form method="POST" action="" enctype="multipart/form-data">
         <!-- Hidden input for student ID -->
                     <input type="hidden" name="student_id" value="<?php echo $student_id; ?>">
@@ -190,7 +195,7 @@ if (isset($_GET['student_id'])) {
                         </select>
                     </div>
             </div>
-            <div class="col-lg-6">
+            <div class="col-12 col-lg-6">
                     <div class="mb-3">
                         <label for="lin" class="form-label text-capitalize fw-bold">LIN</label>
                         <input type="text" class="form-control shadow-none text-uppercase" name="lin"

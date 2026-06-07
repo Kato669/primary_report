@@ -1,7 +1,5 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+ob_start();
 require_once 'partials/header.php';
 
 // ---------------- Role & Login Check ----------------
@@ -42,7 +40,7 @@ if ($role === 'teacher') {
 }
 
 // ---------------- Build Student Filter ----------------
-$where_clauses = ["level = 'active'"];
+$where_clauses = ["(level = 'active' OR level IS NULL)"];
 $filter_params = [];
 $filter_types = '';
 

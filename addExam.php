@@ -64,6 +64,16 @@ $stream_id = $_SESSION['stream_id'] ?? null;
 ?>
 
 <div class="container-fluid my-3">
+    <div class="row mb-3">
+        <div class="col-12 d-flex gap-2">
+            <a href="select_exam.php" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Back to Select Exam
+            </a>
+            <a href="examination.php" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-file-pen me-1"></i> View Examinations
+            </a>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-6 col-sm-12 col-md-12 shadow rounded p-5">
             <?php if (!empty($errors)): ?>

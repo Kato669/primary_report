@@ -45,9 +45,16 @@ if ($term_res) {
 }
 ?>
 
-<h3 class="text-capitalize py-3 fs-6">Select Exam</h3>
 <div class="container-fluid">
-    <form action="" method="POST" class="p-3 shadow rounded col-lg-6">
+    <div class="d-flex justify-content-between align-items-center py-3">
+        <h3 class="text-capitalize fs-6 m-0">Select Exam</h3>
+        <a href="addExam.php" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i> Add Exam
+        </a>
+    </div>
+</div>
+<div class="container-fluid">
+    <form action="" method="POST" class="p-3 shadow rounded col-12 col-lg-6">
 
         <!-- Class dropdown -->
         <?php if (!$is_class_teacher): ?>
